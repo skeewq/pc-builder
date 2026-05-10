@@ -44,19 +44,15 @@ def check_compatibility(cpu, mb, ram, gpu, psu, case):
     """Возвращает список причин несовместимости (пустой = всё ОК)."""
     msgs = []
 
-    # Сокет
     if cpu["socket"] != mb["socket"]:
         msgs.append(f"Разные сокеты: у процессора «{cpu['socket']}», у платы «{mb['socket']}» — физически несовместимы, нужна плата с сокетом {cpu['socket']}")
 
-    # Тип памяти
     if ram["type"] != mb["ram_type"]:
         msgs.append(f"Разный тип памяти: ОЗУ — «{ram['type']}», плата поддерживает только «{mb['ram_type']}» — модуль не войдёт в разъём")
 
-    # Форм-фактор корпуса
     if case["form_factor"] != mb["form_factor"]:
         msgs.append(f"Корпус ({case['form_factor']}) не подходит плате ({mb['form_factor']}). Плата просто не поместится в корпус — нужен корпус {mb['form_factor']}")
 
-    # Мощность БП
     total_tdp = cpu["tdp"] + gpu["tdp"] + 50
     required = math.ceil(total_tdp * 1.3)
     if psu["power"] < required:
@@ -116,34 +112,29 @@ if st.button("🔍 Подобрать сборку", type="primary"):
     pc = {}
     error_msg = None
 
-    # CPU
     cpu_list = [c for c in DATABASE["cpu"] if c.get("purpose") == purpose_key]
     cpu = smart_pick(cpu_list, min(remaining, budget * quotas["cpu"] * 1.2), prefer_cheaper=False)
     if not cpu: error_msg = "❌ Не найден процессор."
     else: pc["cpu"] = cpu; remaining -= get_price(cpu)
 
-    # MB
     if not error_msg:
         mb_list = [m for m in DATABASE["motherboard"] if m["socket"] == cpu["socket"]]
         mb = smart_pick(mb_list, min(remaining, budget * quotas["motherboard"] * 1.3), prefer_cheaper=True)
         if not mb: error_msg = "❌ Нет материнской платы."
         else: pc["motherboard"] = mb; remaining -= get_price(mb)
 
-    # RAM
     if not error_msg:
         ram_list = [r for r in DATABASE["ram"] if r["type"] == mb["ram_type"]]
         ram = smart_pick(ram_list, min(remaining, budget * quotas["ram"] * 1.2), prefer_cheaper=True)
         if not ram: error_msg = "❌ Нет ОЗУ."
         else: pc["ram"] = ram; remaining -= get_price(ram)
 
-    # GPU
     if not error_msg:
         gpu_list = [g for g in DATABASE["gpu"] if g.get("purpose") == purpose_key]
         gpu = smart_pick(gpu_list, min(remaining, budget * quotas["gpu"] * 1.2), prefer_cheaper=False)
         if not gpu: error_msg = "❌ Нет видеокарты."
         else: pc["gpu"] = gpu; remaining -= get_price(gpu)
 
-    # PSU
     if not error_msg:
         required_watt = math.ceil((cpu["tdp"] + gpu["tdp"] + 50) * 1.3)
         psu_list = [p for p in DATABASE["psu"] if p["power"] >= required_watt]
@@ -151,7 +142,6 @@ if st.button("🔍 Подобрать сборку", type="primary"):
         if not psu: error_msg = f"❌ Нет БП ({required_watt} Вт)."
         else: pc["psu"] = psu; remaining -= get_price(psu)
 
-    # Case
     if not error_msg:
         case_list = sorted(
             [c for c in DATABASE["case"] if c["form_factor"] == mb["form_factor"] and get_price(c) <= remaining],
@@ -174,12 +164,27 @@ if st.session_state.step == "review" and st.session_state.pc is not None:
     pc = st.session_state.pc
     st.header("Шаг 2. Сборка — проверьте и при необходимости замените компоненты")
 
-    # Показываем проблемы совместимости вверху
+    # Единый блок с важной информацией перед всей сборкой
+    with st.container(border=True):
+        st.markdown("### 📌 Важная информация")
+        col_info1, col_info2 = st.columns(2)
+        with col_info1:
+            st.info("💡 **Рекомендация:** выбирайте в списках замены товары **без пометки «⚠️»** — они гарантированно совместимы с остальными компонентами. Товары с пометкой «⚠️» и описанием причины лучше не выбирать — они могут не подойти.")
+        with col_info2:
+            st.warning("💰 **Внимание:** цены в программе являются ориентировочными и собраны на основе данных из открытых источников. Реальные цены в магазинах могут отличаться — переходите по ссылкам на финальном шаге для уточнения.")
+
+    st.markdown("---")
+
+    # Показываем проблемы совместимости (если есть)
     compat_issues = check_compatibility(pc["cpu"], pc["motherboard"], pc["ram"], pc["gpu"], pc["psu"], pc["case"])
     if compat_issues:
-        st.error("⚠️ Обнаружены проблемы совместимости:")
+        st.error("⚠️ Обнаружены проблемы совместимости в текущей сборке:")
         for msg in compat_issues:
             st.write(f"- {msg}")
+        st.markdown("---")
+
+    # Легенда значков
+    st.caption("✅ — товар в наличии | ❌ — товар отсутствует в магазине")
 
     labels = [
         ("🧠 Процессор", "cpu"),
@@ -198,7 +203,7 @@ if st.session_state.step == "review" and st.session_state.pc is not None:
         stock_icon = "✅" if current.get("in_stock", True) else "❌ Нет в наличии"
         st.write(f"**{current['model']}** — {current_price} руб. | {stock_icon}")
 
-        # Подробные характеристики
+        # Характеристики
         if key == "cpu":
             st.write(f"🔹 Сокет: **{current['socket']}** | Ядер: {current.get('cores', '—')} | Потоков: {current.get('threads', '—')} | Базовая частота: {current.get('base_clock', '—')} | Турбо: {current.get('turbo_clock', '—')} | TDP: {current['tdp']} Вт")
         elif key == "motherboard":
@@ -214,9 +219,8 @@ if st.session_state.step == "review" and st.session_state.pc is not None:
 
         # Выпадающий список замены
         all_options = DATABASE[key]
-        current_str = f"{current['model']} — {current_price} руб."
 
-        # Формируем список опций с информацией о совместимости и рекомендациях
+        # Формируем список опций
         options_display = []
         compatible_options = []
         for o in all_options:
@@ -236,9 +240,6 @@ if st.session_state.step == "review" and st.session_state.pc is not None:
             if current['model'] in disp:
                 idx = i
                 break
-
-        # Выбор с рекомендацией
-        st.caption("💡 *Рекомендация: выбирайте товары без предупреждений — они гарантированно совместимы*")
 
         selected_display = st.selectbox(
             "🔄 Заменить:",
@@ -280,6 +281,9 @@ if st.session_state.step == "final" and st.session_state.pc is not None:
     st.header("🏁 Итоговая сборка — ссылки на покупку")
     st.info("Ниже — полный список компонентов с лучшими ценами и прямыми ссылками.")
 
+    # Предупреждение о ценах
+    st.warning("💰 **Внимание:** цены являются ориентировочными. Реальные цены могут отличаться — переходите по ссылкам для уточнения актуальной стоимости.")
+
     items = [
         ("🧠 Процессор", "cpu"),
         ("🖥️ Материнская плата", "motherboard"),
@@ -317,7 +321,7 @@ if st.session_state.step == "final" and st.session_state.pc is not None:
         elif key == "case":
             st.write(f"🔹 Форм-фактор: {comp['form_factor']} | Вентиляторов: {comp.get('fans', '—')}")
 
-        # Ссылки на магазины (только на финальном шаге)
+        # Ссылки на магазины
         if comp.get("shops"):
             st.write("**🛒 Где купить:**")
             for shop in comp["shops"]:
