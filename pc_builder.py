@@ -11,7 +11,7 @@ def load_database():
 DATABASE = load_database()
 
 CATEGORY_LABELS = {
-    "cpu": "Процессор", "motherboard": "Материнская плата",
+    "cpu": "Процессор", "motherboard": "Мат. плата",
     "ram": "ОЗУ", "gpu": "Видеокарта", "psu": "Блок питания", "case": "Корпус"
 }
 
@@ -35,14 +35,13 @@ def get_best_shop(item):
 def check_compatibility(cpu, mb, ram, gpu, psu, case):
     msgs = []
     if cpu["socket"] != mb["socket"]:
-        msgs.append(f"Разные сокеты: CPU={cpu['socket']}, плата={mb['socket']}")
+        msgs.append(f"Сокеты: CPU={cpu['socket']}, плата={mb['socket']}")
     if ram["type"] != mb["ram_type"]:
-        msgs.append(f"Разный тип памяти: ОЗУ={ram['type']}, плата={mb['ram_type']}")
+        msgs.append(f"Память: ОЗУ={ram['type']}, плата={mb['ram_type']}")
     if case["form_factor"] != mb["form_factor"]:
         msgs.append(f"Корпус={case['form_factor']}, плата={mb['form_factor']}")
-    total_tdp = cpu["tdp"] + gpu["tdp"] + 50
-    if psu["power"] < math.ceil(total_tdp * 1.3):
-        msgs.append(f"БП={psu['power']} Вт мало, нужно ~{math.ceil(total_tdp * 1.3)} Вт")
+    if psu["power"] < math.ceil((cpu["tdp"] + gpu["tdp"] + 50) * 1.3):
+        msgs.append(f"БП={psu['power']}Вт, нужно ~{math.ceil((cpu['tdp']+gpu['tdp']+50)*1.3)}Вт")
     return msgs
 
 def sort_options(options, sort_key):
@@ -91,7 +90,6 @@ if st.button("🔍 Подобрать сборку", type="primary"):
     pc = {}
     err = None
 
-    # CPU
     if "cpu" in existing:
         pc["cpu"] = existing["cpu"]
     else:
@@ -101,7 +99,6 @@ if st.button("🔍 Подобрать сборку", type="primary"):
                 pc["cpu"] = c; remaining -= get_price(c); break
         if "cpu" not in pc: err = "Нет процессора в бюджете"
 
-    # MB
     if not err:
         if "motherboard" in existing:
             pc["motherboard"] = existing["motherboard"]
@@ -112,7 +109,6 @@ if st.button("🔍 Подобрать сборку", type="primary"):
                     pc["motherboard"] = m; remaining -= get_price(m); break
             if "motherboard" not in pc: err = "Нет материнской платы"
 
-    # RAM
     if not err:
         if "ram" in existing:
             pc["ram"] = existing["ram"]
@@ -123,7 +119,6 @@ if st.button("🔍 Подобрать сборку", type="primary"):
                     pc["ram"] = r; remaining -= get_price(r); break
             if "ram" not in pc: err = "Нет ОЗУ"
 
-    # GPU
     if not err:
         if "gpu" in existing:
             pc["gpu"] = existing["gpu"]
@@ -134,23 +129,19 @@ if st.button("🔍 Подобрать сборку", type="primary"):
                     pc["gpu"] = g; remaining -= get_price(g); break
             if "gpu" not in pc: err = "Нет видеокарты"
 
-    # PSU
     if not err:
         required = math.ceil((pc["cpu"]["tdp"] + pc["gpu"]["tdp"] + 50) * 1.3)
         if "psu" in existing:
+            pc["psu"] = existing["psu"]
             if existing["psu"]["power"] < required:
-                pc["psu"] = existing["psu"]
-                err = f"Ваш БП ({existing['psu']['power']} Вт) слаб, нужно {required} Вт"
-            else:
-                pc["psu"] = existing["psu"]
+                err = f"Ваш БП ({existing['psu']['power']}Вт) слаб для этой сборки, нужно {required}Вт"
         else:
             candidates = sorted([p for p in DATABASE["psu"] if p["power"] >= required], key=get_price)
             for p in candidates:
                 if get_price(p) <= remaining:
                     pc["psu"] = p; remaining -= get_price(p); break
-            if "psu" not in pc: err = f"Нет БП на {required} Вт"
+            if "psu" not in pc: err = f"Нет БП на {required}Вт"
 
-    # Case
     if not err:
         if "case" in existing:
             pc["case"] = existing["case"]
@@ -177,7 +168,7 @@ if st.session_state.step == "review" and st.session_state.pc is not None:
 
     with st.container(border=True):
         c1, c2 = st.columns(2)
-        c1.info("💡 Выбирайте товары без «⚠️» — они совместимы")
+        c1.info("💡 Выбирайте в списках замены товары без «⚠️» — они совместимы")
         c2.warning("💰 Цены ориентировочные")
 
     if pc["compatibility"]:
@@ -186,51 +177,55 @@ if st.session_state.step == "review" and st.session_state.pc is not None:
             st.write(f"- {m}")
         st.markdown("---")
 
-    # Сортировка
     sort_order = st.selectbox("🔽 Сортировка списков замены:", SORT_OPTIONS, key="sort_select")
     st.session_state.sort_order = sort_order
-
     st.caption("✅ в наличии | ❌ отсутствует | 🔒 ваш")
+    st.markdown("---")
 
-    for label, key in [("Процессор","cpu"),("Мат. плата","motherboard"),("ОЗУ","ram"),
-                       ("Видеокарта","gpu"),("БП","psu"),("Корпус","case")]:
+    labels = [("Процессор","cpu"),("Мат. плата","motherboard"),("ОЗУ","ram"),
+              ("Видеокарта","gpu"),("БП","psu"),("Корпус","case")]
+
+    for label, key in labels:
         cur = pc[key]
         owned = key in existing and existing[key]["model"] == cur["model"]
-        st.subheader(label)
-        st.write(f"{'🔒' if owned else '✅' if cur.get('in_stock',True) else '❌'} **{cur['model']}** — {get_price(cur)} руб. {'(ваш)' if owned else ''}")
-        if key == "cpu":
-            st.write(f"Сокет: {cur['socket']} | Ядер: {cur.get('cores','—')} | TDP: {cur['tdp']} Вт")
-        elif key == "motherboard":
-            st.write(f"Сокет: {cur['socket']} | RAM: {cur['ram_type']} | {cur['form_factor']}")
-        elif key == "ram":
-            st.write(f"Тип: {cur['type']} | {cur['size']} ГБ | {cur.get('freq','—')} МГц")
-        elif key == "gpu":
-            st.write(f"VRAM: {cur.get('vram','—')} ГБ | TDP: {cur['tdp']} Вт")
-        elif key == "psu":
-            st.write(f"{cur['power']} Вт | {cur.get('cert','—')}")
-        elif key == "case":
-            st.write(f"{cur['form_factor']} | Вент.: {cur.get('fans','—')}")
-
-        if not owned:
-            opts = DATABASE[key]
-            opts = sort_options(opts, sort_order)
-            disp = []
-            for o in opts:
-                ok, issues = False, []
-                test_pc = pc.copy(); test_pc[key] = o
-                issues = check_compatibility(test_pc["cpu"], test_pc["motherboard"], test_pc["ram"], test_pc["gpu"], test_pc["psu"], test_pc["case"])
-                ok = len(issues) == 0
-                stock = "✅" if o.get("in_stock",True) else "❌"
-                if ok:
-                    disp.append(f"{stock} {o['model']} — {get_price(o)} руб.")
-                else:
-                    disp.append(f"{stock} {o['model']} — {get_price(o)} руб. ⚠️ {'; '.join(issues)}")
-            idx = next((i for i, d in enumerate(disp) if cur['model'] in d), 0)
-            sel = st.selectbox("Заменить:", disp, index=idx, key=f"sel_{key}", label_visibility="collapsed")
-            sel_model = sel.split(" — ")[0].split(" ",1)[1] if " " in sel.split(" — ")[0] else sel.split(" — ")[0]
-            for o in opts:
-                if o["model"] == sel_model and o["model"] != cur["model"]:
-                    pc[key] = o
+        
+        # Компактная строка с информацией и кнопкой замены
+        col_info, col_btn = st.columns([3, 1])
+        with col_info:
+            icon = "🔒" if owned else ("✅" if cur.get("in_stock", True) else "❌")
+            st.write(f"{icon} **{cur['model']}** — {get_price(cur)} руб. {'(ваш)' if owned else ''}")
+        with col_btn:
+            if not owned:
+                replace_clicked = st.button("🔄 Заменить", key=f"btn_{key}")
+            else:
+                replace_clicked = False
+        
+        # Если нажали "Заменить" — показываем popover со списком
+        if replace_clicked:
+            with st.container():
+                st.markdown("---")
+                st.write(f"**Замена для «{cur['model']}»:**")
+                opts = DATABASE[key]
+                opts = sort_options(opts, sort_order)
+                disp = []
+                for o in opts:
+                    test_pc = pc.copy(); test_pc[key] = o
+                    issues = check_compatibility(test_pc["cpu"], test_pc["motherboard"], test_pc["ram"], test_pc["gpu"], test_pc["psu"], test_pc["case"])
+                    ok = len(issues) == 0
+                    stock = "✅" if o.get("in_stock", True) else "❌"
+                    if ok:
+                        disp.append(f"{stock} {o['model']} — {get_price(o)} руб.")
+                    else:
+                        disp.append(f"{stock} {o['model']} — {get_price(o)} руб. ⚠️ {'; '.join(issues)}")
+                idx = next((i for i, d in enumerate(disp) if cur['model'] in d), 0)
+                sel = st.selectbox("Выберите:", disp, index=idx, key=f"sel_{key}")
+                sel_model = sel.split(" — ")[0].split(" ", 1)[1] if " " in sel.split(" — ")[0] else sel.split(" — ")[0]
+                for o in opts:
+                    if o["model"] == sel_model and o["model"] != cur["model"]:
+                        pc[key] = o
+                        st.rerun()
+                st.markdown("---")
+        
         st.markdown("---")
 
     new_total = sum(get_price(pc[k]) for k in ["cpu","motherboard","ram","gpu","psu","case"] if k not in existing or existing[k]["model"] != pc[k]["model"])
