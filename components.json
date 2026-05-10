@@ -46,6 +46,21 @@
       ]
     },
     {
+      "model": "Intel Core i5-14400F",
+      "socket": "LGA1700",
+      "tdp": 148,
+      "cores": 10,
+      "threads": 16,
+      "base_clock": "2.5 GHz",
+      "turbo_clock": "4.7 GHz",
+      "purpose": "gaming",
+      "in_stock": true,
+      "shops": [
+        {"source": "DNS", "url": "https://www.dns-shop.ru/search/?q=Intel+Core+i5-14400F", "price": 23000},
+        {"source": "Ситилинк", "url": "https://www.citilink.ru/search/?text=Intel+Core+i5-14400F", "price": 23500}
+      ]
+    },
+    {
       "model": "Intel Core i7-12700KF",
       "socket": "LGA1700",
       "tdp": 190,
@@ -58,6 +73,36 @@
       "shops": [
         {"source": "Регард", "url": "https://www.regard.ru/catalog/?search=Intel+Core+i7-12700KF", "price": 31000},
         {"source": "DNS", "url": "https://www.dns-shop.ru/search/?q=Intel+Core+i7-12700KF", "price": 32000}
+      ]
+    },
+    {
+      "model": "Intel Core i7-14700KF",
+      "socket": "LGA1700",
+      "tdp": 253,
+      "cores": 20,
+      "threads": 28,
+      "base_clock": "3.4 GHz",
+      "turbo_clock": "5.6 GHz",
+      "purpose": "gaming",
+      "in_stock": true,
+      "shops": [
+        {"source": "DNS", "url": "https://www.dns-shop.ru/search/?q=Intel+Core+i7-14700KF", "price": 45000},
+        {"source": "Ситилинк", "url": "https://www.citilink.ru/search/?text=Intel+Core+i7-14700KF", "price": 46000}
+      ]
+    },
+    {
+      "model": "Intel Core i9-14900KF",
+      "socket": "LGA1700",
+      "tdp": 253,
+      "cores": 24,
+      "threads": 32,
+      "base_clock": "3.2 GHz",
+      "turbo_clock": "6.0 GHz",
+      "purpose": "gaming",
+      "in_stock": true,
+      "shops": [
+        {"source": "DNS", "url": "https://www.dns-shop.ru/search/?q=Intel+Core+i9-14900KF", "price": 75000},
+        {"source": "Ситилинк", "url": "https://www.citilink.ru/search/?text=Intel+Core+i9-14900KF", "price": 76000}
       ]
     },
     {
@@ -106,6 +151,35 @@
       ]
     },
     {
+      "model": "AMD Ryzen 5 8600G",
+      "socket": "AM5",
+      "tdp": 65,
+      "cores": 6,
+      "threads": 12,
+      "base_clock": "4.3 GHz",
+      "turbo_clock": "5.0 GHz",
+      "purpose": "office",
+      "in_stock": true,
+      "shops": [
+        {"source": "DNS", "url": "https://www.dns-shop.ru/search/?q=AMD+Ryzen+5+8600G", "price": 25000}
+      ]
+    },
+    {
+      "model": "AMD Ryzen 7 5700X",
+      "socket": "AM4",
+      "tdp": 105,
+      "cores": 8,
+      "threads": 16,
+      "base_clock": "3.4 GHz",
+      "turbo_clock": "4.6 GHz",
+      "purpose": "gaming",
+      "in_stock": true,
+      "shops": [
+        {"source": "DNS", "url": "https://www.dns-shop.ru/search/?q=AMD+Ryzen+7+5700X", "price": 22000},
+        {"source": "Регард", "url": "https://www.regard.ru/catalog/?search=AMD+Ryzen+7+5700X", "price": 22500}
+      ]
+    },
+    {
       "model": "AMD Ryzen 7 7700X",
       "socket": "AM5",
       "tdp": 170,
@@ -117,6 +191,36 @@
       "in_stock": false,
       "shops": [
         {"source": "DNS", "url": "https://www.dns-shop.ru/search/?q=AMD+Ryzen+7+7700X", "price": 32000}
+      ]
+    },
+    {
+      "model": "AMD Ryzen 7 7800X3D",
+      "socket": "AM5",
+      "tdp": 120,
+      "cores": 8,
+      "threads": 16,
+      "base_clock": "4.2 GHz",
+      "turbo_clock": "5.0 GHz",
+      "purpose": "gaming",
+      "in_stock": true,
+      "shops": [
+        {"source": "DNS", "url": "https://www.dns-shop.ru/search/?q=AMD+Ryzen+7+7800X3D", "price": 48000},
+        {"source": "Ситилинк", "url": "https://www.citilink.ru/search/?text=AMD+Ryzen+7+7800X3D", "price": 49000}
+      ]
+    },
+    {
+      "model": "AMD Ryzen 9 7950X",
+      "socket": "AM5",
+      "tdp": 230,
+      "cores": 16,
+      "threads": 32,
+      "base_clock": "4.5 GHz",
+      "turbo_clock": "5.7 GHz",
+      "purpose": "gaming",
+      "in_stock": true,
+      "shops": [
+        {"source": "Ситилинк", "url": "https://www.citilink.ru/search/?text=AMD+Ryzen+9+7950X", "price": 55000},
+        {"source": "DNS", "url": "https://www.dns-shop.ru/search/?q=AMD+Ryzen+9+7950X", "price": 56000}
       ]
     },
     {
@@ -134,18 +238,45 @@
       ]
     },
     {
-      "model": "AMD Ryzen 9 7950X",
+      "model": "Intel Core i3-14100F",
+      "socket": "LGA1700",
+      "tdp": 110,
+      "cores": 4,
+      "threads": 8,
+      "base_clock": "3.5 GHz",
+      "turbo_clock": "4.7 GHz",
+      "purpose": "office",
+      "in_stock": true,
+      "shops": [
+        {"source": "DNS", "url": "https://www.dns-shop.ru/search/?q=Intel+Core+i3-14100F", "price": 12000}
+      ]
+    },
+    {
+      "model": "AMD Ryzen 7 8700F",
       "socket": "AM5",
-      "tdp": 230,
-      "cores": 16,
-      "threads": 32,
-      "base_clock": "4.5 GHz",
-      "turbo_clock": "5.7 GHz",
+      "tdp": 65,
+      "cores": 8,
+      "threads": 16,
+      "base_clock": "4.1 GHz",
+      "turbo_clock": "5.0 GHz",
       "purpose": "gaming",
       "in_stock": true,
       "shops": [
-        {"source": "Ситилинк", "url": "https://www.citilink.ru/search/?text=AMD+Ryzen+9+7950X", "price": 55000},
-        {"source": "DNS", "url": "https://www.dns-shop.ru/search/?q=AMD+Ryzen+9+7950X", "price": 56000}
+        {"source": "DNS", "url": "https://www.dns-shop.ru/search/?q=AMD+Ryzen+7+8700F", "price": 33000}
+      ]
+    },
+    {
+      "model": "Intel Core i5-14600KF",
+      "socket": "LGA1700",
+      "tdp": 181,
+      "cores": 14,
+      "threads": 20,
+      "base_clock": "3.5 GHz",
+      "turbo_clock": "5.3 GHz",
+      "purpose": "gaming",
+      "in_stock": true,
+      "shops": [
+        {"source": "DNS", "url": "https://www.dns-shop.ru/search/?q=Intel+Core+i5-14600KF", "price": 35000}
       ]
     }
   ],
@@ -279,6 +410,123 @@
       "shops": [
         {"source": "Ситилинк", "url": "https://www.citilink.ru/search/?text=Gigabyte+Z790+AORUS+ELITE+AX", "price": 29000}
       ]
+    },
+    {
+      "model": "ASUS ROG STRIX B550-F GAMING",
+      "socket": "AM4",
+      "form_factor": "ATX",
+      "ram_type": "DDR4",
+      "ram_slots": 4,
+      "max_ram": 128,
+      "chipset": "B550",
+      "in_stock": true,
+      "shops": [
+        {"source": "DNS", "url": "https://www.dns-shop.ru/search/?q=ASUS+ROG+STRIX+B550-F+GAMING", "price": 16000}
+      ]
+    },
+    {
+      "model": "MSI B550-A PRO",
+      "socket": "AM4",
+      "form_factor": "ATX",
+      "ram_type": "DDR4",
+      "ram_slots": 4,
+      "max_ram": 128,
+      "chipset": "B550",
+      "in_stock": true,
+      "shops": [
+        {"source": "Ситилинк", "url": "https://www.citilink.ru/search/?text=MSI+B550-A+PRO", "price": 12000}
+      ]
+    },
+    {
+      "model": "ASUS PRIME B650M-K",
+      "socket": "AM5",
+      "form_factor": "mATX",
+      "ram_type": "DDR5",
+      "ram_slots": 2,
+      "max_ram": 96,
+      "chipset": "B650",
+      "in_stock": true,
+      "shops": [
+        {"source": "DNS", "url": "https://www.dns-shop.ru/search/?q=ASUS+PRIME+B650M-K", "price": 13000}
+      ]
+    },
+    {
+      "model": "Gigabyte B760M DS3H DDR4",
+      "socket": "LGA1700",
+      "form_factor": "mATX",
+      "ram_type": "DDR4",
+      "ram_slots": 4,
+      "max_ram": 128,
+      "chipset": "B760",
+      "in_stock": true,
+      "shops": [
+        {"source": "DNS", "url": "https://www.dns-shop.ru/search/?q=Gigabyte+B760M+DS3H+DDR4", "price": 10500}
+      ]
+    },
+    {
+      "model": "ASRock Z790 Pro RS",
+      "socket": "LGA1700",
+      "form_factor": "ATX",
+      "ram_type": "DDR5",
+      "ram_slots": 4,
+      "max_ram": 192,
+      "chipset": "Z790",
+      "in_stock": true,
+      "shops": [
+        {"source": "Регард", "url": "https://www.regard.ru/catalog/?search=ASRock+Z790+Pro+RS", "price": 22000}
+      ]
+    },
+    {
+      "model": "MSI MAG Z790 TOMAHAWK WIFI",
+      "socket": "LGA1700",
+      "form_factor": "ATX",
+      "ram_type": "DDR5",
+      "ram_slots": 4,
+      "max_ram": 192,
+      "chipset": "Z790",
+      "in_stock": true,
+      "shops": [
+        {"source": "DNS", "url": "https://www.dns-shop.ru/search/?q=MSI+MAG+Z790+TOMAHAWK+WIFI", "price": 34000}
+      ]
+    },
+    {
+      "model": "ASRock B650E Steel Legend WiFi",
+      "socket": "AM5",
+      "form_factor": "ATX",
+      "ram_type": "DDR5",
+      "ram_slots": 4,
+      "max_ram": 192,
+      "chipset": "B650E",
+      "in_stock": true,
+      "shops": [
+        {"source": "DNS", "url": "https://www.dns-shop.ru/search/?q=ASRock+B650E+Steel+Legend+WiFi", "price": 25000}
+      ]
+    },
+    {
+      "model": "Gigabyte X670E AORUS MASTER",
+      "socket": "AM5",
+      "form_factor": "ATX",
+      "ram_type": "DDR5",
+      "ram_slots": 4,
+      "max_ram": 192,
+      "chipset": "X670E",
+      "in_stock": true,
+      "shops": [
+        {"source": "Ситилинк", "url": "https://www.citilink.ru/search/?text=Gigabyte+X670E+AORUS+MASTER", "price": 55000}
+      ]
+    },
+    {
+      "model": "ASRock B550 Pro4",
+      "socket": "AM4",
+      "form_factor": "ATX",
+      "ram_type": "DDR4",
+      "ram_slots": 4,
+      "max_ram": 128,
+      "chipset": "B550",
+      "in_stock": true,
+      "shops": [
+        {"source": "DNS", "url": "https://www.dns-shop.ru/search/?q=ASRock+B550+Pro4", "price": 11000}
+      ]
     }
   ],
   "ram": [
@@ -369,6 +617,116 @@
       "shops": [
         {"source": "Регард", "url": "https://www.regard.ru/catalog/?search=ADATA+XPG+Lancer+DDR5+32GB+6000MHz", "price": 13500}
       ]
+    },
+    {
+      "model": "Crucial Ballistix DDR4 16GB 3200MHz",
+      "type": "DDR4",
+      "size": 16,
+      "freq": 3200,
+      "sticks": 2,
+      "in_stock": true,
+      "shops": [
+        {"source": "DNS", "url": "https://www.dns-shop.ru/search/?q=Crucial+Ballistix+DDR4+16GB+3200MHz", "price": 4500}
+      ]
+    },
+    {
+      "model": "Corsair Vengeance LPX DDR4 32GB 3600MHz",
+      "type": "DDR4",
+      "size": 32,
+      "freq": 3600,
+      "sticks": 2,
+      "in_stock": true,
+      "shops": [
+        {"source": "Ситилинк", "url": "https://www.citilink.ru/search/?text=Corsair+Vengeance+LPX+DDR4+32GB+3600MHz", "price": 10000}
+      ]
+    },
+    {
+      "model": "Kingston Fury Renegade DDR5 32GB 7200MHz",
+      "type": "DDR5",
+      "size": 32,
+      "freq": 7200,
+      "sticks": 2,
+      "in_stock": true,
+      "shops": [
+        {"source": "DNS", "url": "https://www.dns-shop.ru/search/?q=Kingston+Fury+Renegade+DDR5+32GB+7200MHz", "price": 17000}
+      ]
+    },
+    {
+      "model": "G.Skill Trident Z5 RGB DDR5 64GB 6400MHz",
+      "type": "DDR5",
+      "size": 64,
+      "freq": 6400,
+      "sticks": 2,
+      "in_stock": true,
+      "shops": [
+        {"source": "DNS", "url": "https://www.dns-shop.ru/search/?q=G.Skill+Trident+Z5+RGB+DDR5+64GB+6400MHz", "price": 28000}
+      ]
+    },
+    {
+      "model": "Samsung DDR4 16GB 3200MHz",
+      "type": "DDR4",
+      "size": 16,
+      "freq": 3200,
+      "sticks": 1,
+      "in_stock": true,
+      "shops": [
+        {"source": "OZON", "url": "https://www.ozon.ru/search/?text=Samsung+DDR4+16GB+3200MHz", "price": 3800}
+      ]
+    },
+    {
+      "model": "Crucial DDR5 16GB 4800MHz",
+      "type": "DDR5",
+      "size": 16,
+      "freq": 4800,
+      "sticks": 1,
+      "in_stock": true,
+      "shops": [
+        {"source": "DNS", "url": "https://www.dns-shop.ru/search/?q=Crucial+DDR5+16GB+4800MHz", "price": 5000}
+      ]
+    },
+    {
+      "model": "ADATA XPG Gammix D10 DDR4 16GB 3200MHz",
+      "type": "DDR4",
+      "size": 16,
+      "freq": 3200,
+      "sticks": 2,
+      "in_stock": true,
+      "shops": [
+        {"source": "Регард", "url": "https://www.regard.ru/catalog/?search=ADATA+XPG+Gammix+D10+DDR4+16GB+3200MHz", "price": 4000}
+      ]
+    },
+    {
+      "model": "Patriot Viper Venom DDR5 32GB 6200MHz",
+      "type": "DDR5",
+      "size": 32,
+      "freq": 6200,
+      "sticks": 2,
+      "in_stock": true,
+      "shops": [
+        {"source": "DNS", "url": "https://www.dns-shop.ru/search/?q=Patriot+Viper+Venom+DDR5+32GB+6200MHz", "price": 15000}
+      ]
+    },
+    {
+      "model": "Team Group Vulcan Z DDR4 16GB 3600MHz",
+      "type": "DDR4",
+      "size": 16,
+      "freq": 3600,
+      "sticks": 2,
+      "in_stock": true,
+      "shops": [
+        {"source": "Ситилинк", "url": "https://www.citilink.ru/search/?text=Team+Group+Vulcan+Z+DDR4+16GB+3600MHz", "price": 4400}
+      ]
+    },
+    {
+      "model": "Kingston Fury Beast DDR4 8GB 3200MHz",
+      "type": "DDR4",
+      "size": 8,
+      "freq": 3200,
+      "sticks": 1,
+      "in_stock": true,
+      "shops": [
+        {"source": "OZON", "url": "https://www.ozon.ru/search/?text=Kingston+Fury+Beast+DDR4+8GB+3200MHz", "price": 2400}
+      ]
     }
   ],
   "gpu": [
@@ -453,6 +811,76 @@
       "shops": [
         {"source": "DNS", "url": "https://www.dns-shop.ru/search/?q=Radeon+RX+7600+8GB", "price": 27000}
       ]
+    },
+    {
+      "model": "NVIDIA GeForce RTX 4060 Ti 8GB",
+      "tdp": 160,
+      "vram": 8,
+      "purpose": "gaming",
+      "in_stock": true,
+      "shops": [
+        {"source": "DNS", "url": "https://www.dns-shop.ru/search/?q=GeForce+RTX+4060+Ti+8GB", "price": 42000}
+      ]
+    },
+    {
+      "model": "NVIDIA GeForce RTX 4070 Ti Super 16GB",
+      "tdp": 285,
+      "vram": 16,
+      "purpose": "gaming",
+      "in_stock": true,
+      "shops": [
+        {"source": "DNS", "url": "https://www.dns-shop.ru/search/?q=GeForce+RTX+4070+Ti+Super+16GB", "price": 85000}
+      ]
+    },
+    {
+      "model": "NVIDIA GeForce RTX 4080 Super 16GB",
+      "tdp": 320,
+      "vram": 16,
+      "purpose": "gaming",
+      "in_stock": true,
+      "shops": [
+        {"source": "DNS", "url": "https://www.dns-shop.ru/search/?q=GeForce+RTX+4080+Super+16GB", "price": 120000}
+      ]
+    },
+    {
+      "model": "AMD Radeon RX 7900 XT 20GB",
+      "tdp": 315,
+      "vram": 20,
+      "purpose": "gaming",
+      "in_stock": true,
+      "shops": [
+        {"source": "DNS", "url": "https://www.dns-shop.ru/search/?q=Radeon+RX+7900+XT+20GB", "price": 95000}
+      ]
+    },
+    {
+      "model": "AMD Radeon RX 7700 XT 12GB",
+      "tdp": 245,
+      "vram": 12,
+      "purpose": "gaming",
+      "in_stock": true,
+      "shops": [
+        {"source": "DNS", "url": "https://www.dns-shop.ru/search/?q=Radeon+RX+7700+XT+12GB", "price": 52000}
+      ]
+    },
+    {
+      "model": "NVIDIA GeForce RTX 3050 8GB",
+      "tdp": 130,
+      "vram": 8,
+      "purpose": "gaming",
+      "in_stock": true,
+      "shops": [
+        {"source": "Ситилинк", "url": "https://www.citilink.ru/search/?text=GeForce+RTX+3050+8GB", "price": 23000}
+      ]
+    },
+    {
+      "model": "AMD Radeon RX 6750 XT 12GB",
+      "tdp": 250,
+      "vram": 12,
+      "purpose": "gaming",
+      "in_stock": true,
+      "shops": [
+        {"source": "Регард", "url": "https://www.regard.ru/catalog/?search=Radeon+RX+6750+XT+12GB", "price": 38000}
+      ]
     }
   ],
   "psu": [
@@ -518,6 +946,78 @@
       "shops": [
         {"source": "DNS", "url": "https://www.dns-shop.ru/search/?q=Be+Quiet+Pure+Power+12+M+1000W", "price": 15500}
       ]
+    },
+    {
+      "model": "Corsair CX650 650W Bronze",
+      "power": 650,
+      "cert": "80+ Bronze",
+      "in_stock": true,
+      "shops": [
+        {"source": "DNS", "url": "https://www.dns-shop.ru/search/?q=Corsair+CX650+650W", "price": 6500}
+      ]
+    },
+    {
+      "model": "DeepCool PK750D 750W Bronze",
+      "power": 750,
+      "cert": "80+ Bronze",
+      "in_stock": true,
+      "shops": [
+        {"source": "Ситилинк", "url": "https://www.citilink.ru/search/?text=DeepCool+PK750D+750W", "price": 7000}
+      ]
+    },
+    {
+      "model": "Zalman GigaMax 650W Bronze",
+      "power": 650,
+      "cert": "80+ Bronze",
+      "in_stock": true,
+      "shops": [
+        {"source": "OZON", "url": "https://www.ozon.ru/search/?text=Zalman+GigaMax+650W", "price": 5200}
+      ]
+    },
+    {
+      "model": "Chieftec Proton 600W Bronze",
+      "power": 600,
+      "cert": "80+ Bronze",
+      "in_stock": true,
+      "shops": [
+        {"source": "Регард", "url": "https://www.regard.ru/catalog/?search=Chieftec+Proton+600W", "price": 4800}
+      ]
+    },
+    {
+      "model": "be quiet! Dark Power 13 1000W Titanium",
+      "power": 1000,
+      "cert": "80+ Titanium",
+      "in_stock": true,
+      "shops": [
+        {"source": "DNS", "url": "https://www.dns-shop.ru/search/?q=be+quiet+Dark+Power+13+1000W", "price": 28000}
+      ]
+    },
+    {
+      "model": "ASUS TUF Gaming 750W Gold",
+      "power": 750,
+      "cert": "80+ Gold",
+      "in_stock": true,
+      "shops": [
+        {"source": "DNS", "url": "https://www.dns-shop.ru/search/?q=ASUS+TUF+Gaming+750W+Gold", "price": 11000}
+      ]
+    },
+    {
+      "model": "XPG Core Reactor 850W Gold",
+      "power": 850,
+      "cert": "80+ Gold",
+      "in_stock": true,
+      "shops": [
+        {"source": "Ситилинк", "url": "https://www.citilink.ru/search/?text=XPG+Core+Reactor+850W", "price": 13000}
+      ]
+    },
+    {
+      "model": "AeroCool KCAS 500W",
+      "power": 500,
+      "cert": "80+ Bronze",
+      "in_stock": true,
+      "shops": [
+        {"source": "OZON", "url": "https://www.ozon.ru/search/?text=AeroCool+KCAS+500W", "price": 3500}
+      ]
     }
   ],
   "case": [
@@ -582,6 +1082,78 @@
       "in_stock": true,
       "shops": [
         {"source": "DNS", "url": "https://www.dns-shop.ru/search/?q=AeroCool+Cylon+mATX+Black", "price": 2800}
+      ]
+    },
+    {
+      "model": "DeepCool MATREXX 40 mATX Black",
+      "form_factor": "mATX",
+      "fans": 0,
+      "in_stock": true,
+      "shops": [
+        {"source": "DNS", "url": "https://www.dns-shop.ru/search/?q=DeepCool+MATREXX+40", "price": 3200}
+      ]
+    },
+    {
+      "model": "Zalman i3 ATX Black",
+      "form_factor": "ATX",
+      "fans": 4,
+      "in_stock": true,
+      "shops": [
+        {"source": "OZON", "url": "https://www.ozon.ru/search/?text=Zalman+i3+ATX+Black", "price": 4500}
+      ]
+    },
+    {
+      "model": "Corsair iCUE 5000X RGB ATX Black",
+      "form_factor": "ATX",
+      "fans": 3,
+      "in_stock": true,
+      "shops": [
+        {"source": "DNS", "url": "https://www.dns-shop.ru/search/?q=Corsair+iCUE+5000X+RGB+ATX+Black", "price": 16000}
+      ]
+    },
+    {
+      "model": "NZXT H510 ATX Black",
+      "form_factor": "ATX",
+      "fans": 2,
+      "in_stock": true,
+      "shops": [
+        {"source": "Ситилинк", "url": "https://www.citilink.ru/search/?text=NZXT+H510+ATX+Black", "price": 8000}
+      ]
+    },
+    {
+      "model": "be quiet! Pure Base 500DX ATX Black",
+      "form_factor": "ATX",
+      "fans": 3,
+      "in_stock": true,
+      "shops": [
+        {"source": "Регард", "url": "https://www.regard.ru/catalog/?search=be+quiet+Pure+Base+500DX", "price": 10000}
+      ]
+    },
+    {
+      "model": "AeroCool Streak mATX Black",
+      "form_factor": "mATX",
+      "fans": 1,
+      "in_stock": true,
+      "shops": [
+        {"source": "DNS", "url": "https://www.dns-shop.ru/search/?q=AeroCool+Streak+mATX", "price": 2200}
+      ]
+    },
+    {
+      "model": "Zalman Z1 Plus mATX Black",
+      "form_factor": "mATX",
+      "fans": 2,
+      "in_stock": true,
+      "shops": [
+        {"source": "OZON", "url": "https://www.ozon.ru/search/?text=Zalman+Z1+Plus+mATX+Black", "price": 3500}
+      ]
+    },
+    {
+      "model": "Fractal Design North ATX White",
+      "form_factor": "ATX",
+      "fans": 2,
+      "in_stock": true,
+      "shops": [
+        {"source": "DNS", "url": "https://www.dns-shop.ru/search/?q=Fractal+Design+North+ATX+White", "price": 14000}
       ]
     }
   ]
