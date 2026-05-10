@@ -1,287 +1,21 @@
 """
 Программа подбора совместимых комплектующих для ПК
 Веб-версия для Streamlit Cloud
+База загружается из components.json
 """
 
 import streamlit as st
 import math
+import json
 from datetime import datetime
 
-# ========== Расширенная база комплектующих с несколькими магазинами ==========
-DATABASE = {
-    "cpu": [
-        {"model": "Intel Core i3-12100F", "socket": "LGA1700", "tdp": 60, "cores": 4, "threads": 8,
-         "price": 8500, "purpose": "office", "in_stock": True,
-         "shops": [
-             {"source": "DNS", "url": "https://www.dns-shop.ru/search/?q=Intel+Core+i3-12100F", "price": 8500},
-             {"source": "Ситилинк", "url": "https://www.citilink.ru/search/?text=Intel+Core+i3-12100F", "price": 8700},
-         ]},
-        {"model": "Intel Core i5-12400F", "socket": "LGA1700", "tdp": 117, "cores": 6, "threads": 12,
-         "price": 15000, "purpose": "gaming", "in_stock": True,
-         "shops": [
-             {"source": "Ситилинк", "url": "https://www.citilink.ru/search/?text=Intel+Core+i5-12400F", "price": 15000},
-             {"source": "DNS", "url": "https://www.dns-shop.ru/search/?q=Intel+Core+i5-12400F", "price": 15500},
-         ]},
-        {"model": "Intel Core i5-13400F", "socket": "LGA1700", "tdp": 148, "cores": 10, "threads": 16,
-         "price": 21000, "purpose": "gaming", "in_stock": True,
-         "shops": [
-             {"source": "DNS", "url": "https://www.dns-shop.ru/search/?q=Intel+Core+i5-13400F", "price": 21000},
-             {"source": "Регард", "url": "https://www.regard.ru/catalog/?search=Intel+Core+i5-13400F", "price": 21500},
-         ]},
-        {"model": "Intel Core i7-12700KF", "socket": "LGA1700", "tdp": 190, "cores": 12, "threads": 20,
-         "price": 31000, "purpose": "gaming", "in_stock": True,
-         "shops": [
-             {"source": "Регард", "url": "https://www.regard.ru/catalog/?search=Intel+Core+i7-12700KF", "price": 31000},
-             {"source": "DNS", "url": "https://www.dns-shop.ru/search/?q=Intel+Core+i7-12700KF", "price": 32000},
-         ]},
-        {"model": "AMD Ryzen 5 5500", "socket": "AM4", "tdp": 65, "cores": 6, "threads": 12,
-         "price": 9500, "purpose": "office", "in_stock": True,
-         "shops": [
-             {"source": "OZON", "url": "https://www.ozon.ru/search/?text=AMD+Ryzen+5+5500", "price": 9500},
-             {"source": "DNS", "url": "https://www.dns-shop.ru/search/?q=AMD+Ryzen+5+5500", "price": 9800},
-         ]},
-        {"model": "AMD Ryzen 5 5600", "socket": "AM4", "tdp": 65, "cores": 6, "threads": 12,
-         "price": 12000, "purpose": "gaming", "in_stock": True,
-         "shops": [
-             {"source": "DNS", "url": "https://www.dns-shop.ru/search/?q=AMD+Ryzen+5+5600", "price": 12000},
-             {"source": "Ситилинк", "url": "https://www.citilink.ru/search/?text=AMD+Ryzen+5+5600", "price": 12500},
-         ]},
-        {"model": "AMD Ryzen 5 7600", "socket": "AM5", "tdp": 105, "cores": 6, "threads": 12,
-         "price": 19000, "purpose": "gaming", "in_stock": True,
-         "shops": [
-             {"source": "Ситилинк", "url": "https://www.citilink.ru/search/?text=AMD+Ryzen+5+7600", "price": 19000},
-             {"source": "DNS", "url": "https://www.dns-shop.ru/search/?q=AMD+Ryzen+5+7600", "price": 19500},
-         ]},
-        {"model": "AMD Ryzen 7 7700X", "socket": "AM5", "tdp": 170, "cores": 8, "threads": 16,
-         "price": 32000, "purpose": "gaming", "in_stock": False,
-         "shops": [
-             {"source": "DNS", "url": "https://www.dns-shop.ru/search/?q=AMD+Ryzen+7+7700X", "price": 32000},
-         ]},
-        {"model": "Intel Celeron G6900", "socket": "LGA1700", "tdp": 46, "cores": 2, "threads": 2,
-         "price": 4000, "purpose": "office", "in_stock": True,
-         "shops": [
-             {"source": "Регард", "url": "https://www.regard.ru/catalog/?search=Intel+Celeron+G6900", "price": 4000},
-         ]},
-        {"model": "AMD Ryzen 9 7950X", "socket": "AM5", "tdp": 230, "cores": 16, "threads": 32,
-         "price": 55000, "purpose": "gaming", "in_stock": True,
-         "shops": [
-             {"source": "Ситилинк", "url": "https://www.citilink.ru/search/?text=AMD+Ryzen+9+7950X", "price": 55000},
-             {"source": "DNS", "url": "https://www.dns-shop.ru/search/?q=AMD+Ryzen+9+7950X", "price": 56000},
-         ]},
-    ],
-    "motherboard": [
-        {"model": "MSI PRO B760M-P DDR4", "socket": "LGA1700", "form_factor": "mATX", "ram_type": "DDR4",
-         "ram_slots": 2, "price": 8500, "in_stock": True,
-         "shops": [
-             {"source": "DNS", "url": "https://www.dns-shop.ru/search/?q=MSI+PRO+B760M-P+DDR4", "price": 8500},
-         ]},
-        {"model": "ASRock B550M-HDV", "socket": "AM4", "form_factor": "mATX", "ram_type": "DDR4",
-         "ram_slots": 2, "price": 6500, "in_stock": True,
-         "shops": [
-             {"source": "Регард", "url": "https://www.regard.ru/catalog/?search=ASRock+B550M-HDV", "price": 6500},
-         ]},
-        {"model": "Gigabyte B650M K", "socket": "AM5", "form_factor": "mATX", "ram_type": "DDR5",
-         "ram_slots": 2, "price": 11000, "in_stock": True,
-         "shops": [
-             {"source": "Ситилинк", "url": "https://www.citilink.ru/search/?text=Gigabyte+B650M+K", "price": 11000},
-         ]},
-        {"model": "MSI MAG B760 TOMAHAWK WIFI DDR4", "socket": "LGA1700", "form_factor": "ATX", "ram_type": "DDR4",
-         "ram_slots": 4, "price": 17000, "in_stock": False,
-         "shops": [
-             {"source": "DNS", "url": "https://www.dns-shop.ru/search/?q=MSI+MAG+B760+TOMAHAWK+WIFI", "price": 17000},
-         ]},
-        {"model": "ASRock B650M Pro RS", "socket": "AM5", "form_factor": "mATX", "ram_type": "DDR5",
-         "ram_slots": 4, "price": 13500, "in_stock": True,
-         "shops": [
-             {"source": "OZON", "url": "https://www.ozon.ru/search/?text=ASRock+B650M+Pro+RS", "price": 13500},
-         ]},
-        {"model": "Gigabyte B550M AORUS ELITE", "socket": "AM4", "form_factor": "mATX", "ram_type": "DDR4",
-         "ram_slots": 4, "price": 9500, "in_stock": True,
-         "shops": [
-             {"source": "DNS", "url": "https://www.dns-shop.ru/search/?q=Gigabyte+B550M+AORUS+ELITE", "price": 9500},
-         ]},
-        {"model": "MSI PRO H610M-G DDR4", "socket": "LGA1700", "form_factor": "mATX", "ram_type": "DDR4",
-         "ram_slots": 2, "price": 6000, "in_stock": True,
-         "shops": [
-             {"source": "Ситилинк", "url": "https://www.citilink.ru/search/?text=MSI+PRO+H610M-G+DDR4", "price": 6000},
-         ]},
-        {"model": "ASUS TUF GAMING B650-PLUS WIFI", "socket": "AM5", "form_factor": "ATX", "ram_type": "DDR5",
-         "ram_slots": 4, "price": 21000, "in_stock": True,
-         "shops": [
-             {"source": "DNS", "url": "https://www.dns-shop.ru/search/?q=ASUS+TUF+GAMING+B650-PLUS+WIFI", "price": 21000},
-         ]},
-        {"model": "ASRock H610M-HVS", "socket": "LGA1700", "form_factor": "mATX", "ram_type": "DDR4",
-         "ram_slots": 2, "price": 5200, "in_stock": True,
-         "shops": [
-             {"source": "Регард", "url": "https://www.regard.ru/catalog/?search=ASRock+H610M-HVS", "price": 5200},
-         ]},
-        {"model": "Gigabyte Z790 AORUS ELITE AX", "socket": "LGA1700", "form_factor": "ATX", "ram_type": "DDR5",
-         "ram_slots": 4, "price": 29000, "in_stock": True,
-         "shops": [
-             {"source": "Ситилинк", "url": "https://www.citilink.ru/search/?text=Gigabyte+Z790+AORUS+ELITE+AX", "price": 29000},
-         ]},
-    ],
-    "ram": [
-        {"model": "Kingston Fury Beast DDR4 16GB 3200MHz", "type": "DDR4", "size": 16, "freq": 3200,
-         "price": 4200, "in_stock": True,
-         "shops": [
-             {"source": "DNS", "url": "https://www.dns-shop.ru/search/?q=Kingston+Fury+Beast+DDR4+16GB+3200MHz", "price": 4200},
-         ]},
-        {"model": "Kingston Fury Beast DDR5 16GB 5200MHz", "type": "DDR5", "size": 16, "freq": 5200,
-         "price": 5800, "in_stock": True,
-         "shops": [
-             {"source": "Ситилинк", "url": "https://www.citilink.ru/search/?text=Kingston+Fury+Beast+DDR5+16GB+5200MHz", "price": 5800},
-         ]},
-        {"model": "G.Skill Ripjaws V DDR4 32GB 3600MHz", "type": "DDR4", "size": 32, "freq": 3600,
-         "price": 9500, "in_stock": True,
-         "shops": [
-             {"source": "Регард", "url": "https://www.regard.ru/catalog/?search=G.Skill+Ripjaws+V+DDR4+32GB+3600MHz", "price": 9500},
-         ]},
-        {"model": "Corsair Vengeance RGB DDR5 32GB 6000MHz", "type": "DDR5", "size": 32, "freq": 6000,
-         "price": 14000, "in_stock": True,
-         "shops": [
-             {"source": "DNS", "url": "https://www.dns-shop.ru/search/?q=Corsair+Vengeance+RGB+DDR5+32GB+6000MHz", "price": 14000},
-         ]},
-        {"model": "Kingston ValueRAM DDR4 8GB 2666MHz", "type": "DDR4", "size": 8, "freq": 2666,
-         "price": 2200, "in_stock": True,
-         "shops": [
-             {"source": "OZON", "url": "https://www.ozon.ru/search/?text=Kingston+ValueRAM+DDR4+8GB+2666MHz", "price": 2200},
-         ]},
-        {"model": "Team Group T-Force Delta RGB DDR5 16GB 6400MHz", "type": "DDR5", "size": 16, "freq": 6400,
-         "price": 7500, "in_stock": True,
-         "shops": [
-             {"source": "DNS", "url": "https://www.dns-shop.ru/search/?q=Team+Group+T-Force+Delta+RGB+DDR5+16GB", "price": 7500},
-         ]},
-        {"model": "Patriot Viper Steel DDR4 16GB 3600MHz", "type": "DDR4", "size": 16, "freq": 3600,
-         "price": 4800, "in_stock": True,
-         "shops": [
-             {"source": "Ситилинк", "url": "https://www.citilink.ru/search/?text=Patriot+Viper+Steel+DDR4+16GB+3600MHz", "price": 4800},
-         ]},
-        {"model": "ADATA XPG Lancer DDR5 32GB 6000MHz", "type": "DDR5", "size": 32, "freq": 6000,
-         "price": 13500, "in_stock": True,
-         "shops": [
-             {"source": "Регард", "url": "https://www.regard.ru/catalog/?search=ADATA+XPG+Lancer+DDR5+32GB+6000MHz", "price": 13500},
-         ]},
-    ],
-    "gpu": [
-        {"model": "NVIDIA GeForce GT 1030 2GB", "tdp": 30, "vram": 2, "price": 7000,
-         "purpose": "office", "in_stock": True,
-         "shops": [
-             {"source": "DNS", "url": "https://www.dns-shop.ru/search/?q=GeForce+GT+1030+2GB", "price": 7000},
-         ]},
-        {"model": "NVIDIA GeForce RTX 3060 12GB", "tdp": 170, "vram": 12, "price": 28000,
-         "purpose": "gaming", "in_stock": True,
-         "shops": [
-             {"source": "Ситилинк", "url": "https://www.citilink.ru/search/?text=GeForce+RTX+3060+12GB", "price": 28000},
-             {"source": "DNS", "url": "https://www.dns-shop.ru/search/?q=GeForce+RTX+3060+12GB", "price": 29000},
-         ]},
-        {"model": "AMD Radeon RX 6600 8GB", "tdp": 132, "vram": 8, "price": 22000,
-         "purpose": "gaming", "in_stock": True,
-         "shops": [
-             {"source": "Регард", "url": "https://www.regard.ru/catalog/?search=Radeon+RX+6600+8GB", "price": 22000},
-             {"source": "DNS", "url": "https://www.dns-shop.ru/search/?q=Radeon+RX+6600+8GB", "price": 23000},
-         ]},
-        {"model": "NVIDIA GeForce RTX 4060 8GB", "tdp": 115, "vram": 8, "price": 32000,
-         "purpose": "gaming", "in_stock": True,
-         "shops": [
-             {"source": "DNS", "url": "https://www.dns-shop.ru/search/?q=GeForce+RTX+4060+8GB", "price": 32000},
-             {"source": "Ситилинк", "url": "https://www.citilink.ru/search/?text=GeForce+RTX+4060+8GB", "price": 32500},
-         ]},
-        {"model": "AMD Radeon RX 7800 XT 16GB", "tdp": 263, "vram": 16, "price": 65000,
-         "purpose": "gaming", "in_stock": False,
-         "shops": [
-             {"source": "Ситилинк", "url": "https://www.citilink.ru/search/?text=Radeon+RX+7800+XT+16GB", "price": 65000},
-         ]},
-        {"model": "Intel UHD Graphics (встроено)", "tdp": 0, "vram": 0, "price": 0,
-         "purpose": "office", "in_stock": True,
-         "shops": []},
-        {"model": "NVIDIA GeForce RTX 4070 12GB", "tdp": 200, "vram": 12, "price": 58000,
-         "purpose": "gaming", "in_stock": True,
-         "shops": [
-             {"source": "OZON", "url": "https://www.ozon.ru/search/?text=GeForce+RTX+4070+12GB", "price": 58000},
-             {"source": "DNS", "url": "https://www.dns-shop.ru/search/?q=GeForce+RTX+4070+12GB", "price": 60000},
-         ]},
-        {"model": "AMD Radeon RX 7600 8GB", "tdp": 165, "vram": 8, "price": 27000,
-         "purpose": "gaming", "in_stock": True,
-         "shops": [
-             {"source": "DNS", "url": "https://www.dns-shop.ru/search/?q=Radeon+RX+7600+8GB", "price": 27000},
-         ]},
-    ],
-    "psu": [
-        {"model": "Be Quiet! System Power 10 450W", "power": 450, "cert": "80+ Bronze",
-         "price": 4000, "in_stock": True,
-         "shops": [
-             {"source": "DNS", "url": "https://www.dns-shop.ru/search/?q=Be+Quiet+System+Power+10+450W", "price": 4000},
-         ]},
-        {"model": "Cooler Master MWE 650W V2 Bronze", "power": 650, "cert": "80+ Bronze",
-         "price": 5500, "in_stock": True,
-         "shops": [
-             {"source": "Ситилинк", "url": "https://www.citilink.ru/search/?text=Cooler+Master+MWE+650W+V2+Bronze", "price": 5500},
-         ]},
-        {"model": "Corsair RM750e 750W Gold", "power": 750, "cert": "80+ Gold",
-         "price": 9500, "in_stock": True,
-         "shops": [
-             {"source": "DNS", "url": "https://www.dns-shop.ru/search/?q=Corsair+RM750e+750W+Gold", "price": 9500},
-         ]},
-        {"model": "DeepCool PF600 600W", "power": 600, "cert": "80+ Standard",
-         "price": 4500, "in_stock": True,
-         "shops": [
-             {"source": "OZON", "url": "https://www.ozon.ru/search/?text=DeepCool+PF600+600W", "price": 4500},
-         ]},
-        {"model": "Thermaltake Toughpower GF3 850W Gold", "power": 850, "cert": "80+ Gold",
-         "price": 12000, "in_stock": True,
-         "shops": [
-             {"source": "Регард", "url": "https://www.regard.ru/catalog/?search=Thermaltake+Toughpower+GF3+850W", "price": 12000},
-         ]},
-        {"model": "XPG Pylon 550W Bronze", "power": 550, "cert": "80+ Bronze",
-         "price": 4200, "in_stock": True,
-         "shops": [
-             {"source": "Ситилинк", "url": "https://www.citilink.ru/search/?text=XPG+Pylon+550W+Bronze", "price": 4200},
-         ]},
-        {"model": "Be Quiet! Pure Power 12 M 1000W Gold", "power": 1000, "cert": "80+ Gold",
-         "price": 15500, "in_stock": True,
-         "shops": [
-             {"source": "DNS", "url": "https://www.dns-shop.ru/search/?q=Be+Quiet+Pure+Power+12+M+1000W", "price": 15500},
-         ]},
-    ],
-    "case": [
-        {"model": "AeroCool CS-101 mATX Black", "form_factor": "mATX", "fans": 1,
-         "price": 2500, "in_stock": True,
-         "shops": [
-             {"source": "DNS", "url": "https://www.dns-shop.ru/search/?q=AeroCool+CS-101+mATX+Black", "price": 2500},
-         ]},
-        {"model": "DeepCool MACUBE 110 mATX White", "form_factor": "mATX", "fans": 1,
-         "price": 3500, "in_stock": True,
-         "shops": [
-             {"source": "Ситилинк", "url": "https://www.citilink.ru/search/?text=DeepCool+MACUBE+110+mATX+White", "price": 3500},
-         ]},
-        {"model": "Zalman S2 ATX Black", "form_factor": "ATX", "fans": 3,
-         "price": 3000, "in_stock": True,
-         "shops": [
-             {"source": "OZON", "url": "https://www.ozon.ru/search/?text=Zalman+S2+ATX+Black", "price": 3000},
-         ]},
-        {"model": "Corsair 4000D Airflow ATX Black", "form_factor": "ATX", "fans": 2,
-         "price": 8500, "in_stock": True,
-         "shops": [
-             {"source": "DNS", "url": "https://www.dns-shop.ru/search/?q=Corsair+4000D+Airflow+ATX+Black", "price": 8500},
-         ]},
-        {"model": "Cooler Master MasterBox Q300L mATX", "form_factor": "mATX", "fans": 1,
-         "price": 4200, "in_stock": True,
-         "shops": [
-             {"source": "Регард", "url": "https://www.regard.ru/catalog/?search=Cooler+Master+MasterBox+Q300L", "price": 4200},
-         ]},
-        {"model": "Fractal Design Pop Air ATX Black", "form_factor": "ATX", "fans": 3,
-         "price": 7500, "in_stock": True,
-         "shops": [
-             {"source": "Ситилинк", "url": "https://www.citilink.ru/search/?text=Fractal+Design+Pop+Air+ATX+Black", "price": 7500},
-         ]},
-        {"model": "AeroCool Cylon mATX Black", "form_factor": "mATX", "fans": 1,
-         "price": 2800, "in_stock": True,
-         "shops": [
-             {"source": "DNS", "url": "https://www.dns-shop.ru/search/?q=AeroCool+Cylon+mATX+Black", "price": 2800},
-         ]},
-    ]
-}
+# Загрузка базы из JSON-файла
+@st.cache_data
+def load_database():
+    with open("components.json", "r", encoding="utf-8") as f:
+        return json.load(f)
+
+DATABASE = load_database()
 
 # Инициализация состояний сессии
 if 'pc' not in st.session_state:
@@ -295,37 +29,44 @@ if 'purpose' not in st.session_state:
 
 
 def get_price(item):
-    """Возвращает минимальную цену среди всех магазинов."""
     if not item.get("shops"):
         return item.get("price", 0)
     return min(shop["price"] for shop in item["shops"])
 
 
 def get_best_shop(item):
-    """Возвращает магазин с минимальной ценой."""
     if not item.get("shops"):
         return None
     return min(item["shops"], key=lambda s: s["price"])
 
 
 def check_compatibility(cpu, mb, ram, gpu, psu, case):
+    """Возвращает список причин несовместимости (пустой = всё ОК)."""
     msgs = []
+
+    # Сокет
     if cpu["socket"] != mb["socket"]:
-        msgs.append(f"❌ Несовпадение сокета: CPU {cpu['socket']} ↔ Плата {mb['socket']}")
+        msgs.append(f"Разные сокеты: у процессора «{cpu['socket']}», у платы «{mb['socket']}» — физически несовместимы, нужна плата с сокетом {cpu['socket']}")
+
+    # Тип памяти
     if ram["type"] != mb["ram_type"]:
-        msgs.append(f"❌ Тип RAM {ram['type']} несовместим с платой ({mb['ram_type']})")
+        msgs.append(f"Разный тип памяти: ОЗУ — «{ram['type']}», плата поддерживает только «{mb['ram_type']}» — модуль не войдёт в разъём")
+
+    # Форм-фактор корпуса
     if case["form_factor"] != mb["form_factor"]:
-        msgs.append(f"❌ Форм-фактор корпуса ({case['form_factor']}) не подходит плате ({mb['form_factor']})")
+        msgs.append(f"Корпус ({case['form_factor']}) не подходит плате ({mb['form_factor']}). Плата просто не поместится в корпус — нужен корпус {mb['form_factor']}")
+
+    # Мощность БП
     total_tdp = cpu["tdp"] + gpu["tdp"] + 50
-    if psu["power"] < total_tdp * 1.3:
-        msgs.append(f"❌ БП ({psu['power']} Вт) слабоват, нужно ~{math.ceil(total_tdp * 1.3)} Вт")
-    if not msgs:
-        msgs.append("✅ Все компоненты совместимы")
+    required = math.ceil(total_tdp * 1.3)
+    if psu["power"] < required:
+        msgs.append(f"Недостаточно мощности БП: системе нужно ~{required} Вт, а установленный БП даёт только {psu['power']} Вт")
+
     return msgs
 
 
-def get_compatibility_with_current(category, item, pc):
-    """Проверяет совместимость конкретного товара с остальной сборкой."""
+def get_compatibility_status(category, item, pc):
+    """Проверяет совместимость одного товара с остальной сборкой. Возвращает (ok, причины)."""
     test_pc = pc.copy()
     test_pc[category] = item
     msgs = check_compatibility(
@@ -336,7 +77,7 @@ def get_compatibility_with_current(category, item, pc):
         test_pc.get("psu", pc.get("psu")),
         test_pc.get("case", pc.get("case"))
     )
-    return msgs
+    return len(msgs) == 0, msgs
 
 
 def smart_pick(items, max_budget, prefer_cheaper=True):
@@ -349,10 +90,7 @@ def smart_pick(items, max_budget, prefer_cheaper=True):
     n = len(affordable)
     if n == 1:
         return affordable[0]
-    if prefer_cheaper:
-        idx = min(n - 1, int(n * 0.5))
-    else:
-        idx = max(0, int(n * 0.4))
+    idx = min(n - 1, int(n * 0.5)) if prefer_cheaper else max(0, int(n * 0.4))
     return affordable[idx]
 
 
@@ -373,72 +111,45 @@ if st.button("🔍 Подобрать сборку", type="primary"):
     st.session_state.budget = budget
     purpose_key = "office" if purpose == "Офисные задачи" else "gaming"
     st.session_state.purpose = purpose_key
-    quotas = {
-        "cpu": 0.28,
-        "motherboard": 0.15,
-        "ram": 0.08,
-        "gpu": 0.32,
-        "psu": 0.07,
-        "case": 0.05,
-    }
+    quotas = {"cpu": 0.28, "motherboard": 0.15, "ram": 0.08, "gpu": 0.32, "psu": 0.07, "case": 0.05}
     remaining = budget
     pc = {}
     error_msg = None
 
     # CPU
-    cpu_budget = budget * quotas["cpu"]
     cpu_list = [c for c in DATABASE["cpu"] if c.get("purpose") == purpose_key]
-    cpu = smart_pick(cpu_list, min(remaining, cpu_budget * 1.2), prefer_cheaper=False)
-    if not cpu:
-        error_msg = "❌ Не найден процессор."
-    else:
-        pc["cpu"] = cpu
-        remaining -= get_price(cpu)
+    cpu = smart_pick(cpu_list, min(remaining, budget * quotas["cpu"] * 1.2), prefer_cheaper=False)
+    if not cpu: error_msg = "❌ Не найден процессор."
+    else: pc["cpu"] = cpu; remaining -= get_price(cpu)
 
     # MB
     if not error_msg:
-        mb_budget = budget * quotas["motherboard"]
         mb_list = [m for m in DATABASE["motherboard"] if m["socket"] == cpu["socket"]]
-        mb = smart_pick(mb_list, min(remaining, mb_budget * 1.3), prefer_cheaper=True)
-        if not mb:
-            error_msg = "❌ Нет материнской платы."
-        else:
-            pc["motherboard"] = mb
-            remaining -= get_price(mb)
+        mb = smart_pick(mb_list, min(remaining, budget * quotas["motherboard"] * 1.3), prefer_cheaper=True)
+        if not mb: error_msg = "❌ Нет материнской платы."
+        else: pc["motherboard"] = mb; remaining -= get_price(mb)
 
     # RAM
     if not error_msg:
-        ram_budget = budget * quotas["ram"]
         ram_list = [r for r in DATABASE["ram"] if r["type"] == mb["ram_type"]]
-        ram = smart_pick(ram_list, min(remaining, ram_budget * 1.2), prefer_cheaper=True)
-        if not ram:
-            error_msg = "❌ Нет ОЗУ."
-        else:
-            pc["ram"] = ram
-            remaining -= get_price(ram)
+        ram = smart_pick(ram_list, min(remaining, budget * quotas["ram"] * 1.2), prefer_cheaper=True)
+        if not ram: error_msg = "❌ Нет ОЗУ."
+        else: pc["ram"] = ram; remaining -= get_price(ram)
 
     # GPU
     if not error_msg:
-        gpu_budget = budget * quotas["gpu"]
         gpu_list = [g for g in DATABASE["gpu"] if g.get("purpose") == purpose_key]
-        gpu = smart_pick(gpu_list, min(remaining, gpu_budget * 1.2), prefer_cheaper=False)
-        if not gpu:
-            error_msg = "❌ Нет видеокарты."
-        else:
-            pc["gpu"] = gpu
-            remaining -= get_price(gpu)
+        gpu = smart_pick(gpu_list, min(remaining, budget * quotas["gpu"] * 1.2), prefer_cheaper=False)
+        if not gpu: error_msg = "❌ Нет видеокарты."
+        else: pc["gpu"] = gpu; remaining -= get_price(gpu)
 
     # PSU
     if not error_msg:
         required_watt = math.ceil((cpu["tdp"] + gpu["tdp"] + 50) * 1.3)
-        psu_budget = budget * quotas["psu"]
         psu_list = [p for p in DATABASE["psu"] if p["power"] >= required_watt]
-        psu = smart_pick(psu_list, min(remaining, psu_budget * 1.5), prefer_cheaper=True)
-        if not psu:
-            error_msg = f"❌ Нет БП ({required_watt} Вт)."
-        else:
-            pc["psu"] = psu
-            remaining -= get_price(psu)
+        psu = smart_pick(psu_list, min(remaining, budget * quotas["psu"] * 1.5), prefer_cheaper=True)
+        if not psu: error_msg = f"❌ Нет БП ({required_watt} Вт)."
+        else: pc["psu"] = psu; remaining -= get_price(psu)
 
     # Case
     if not error_msg:
@@ -447,11 +158,8 @@ if st.button("🔍 Подобрать сборку", type="primary"):
             key=lambda x: get_price(x)
         )
         case_ = case_list[0] if case_list else None
-        if not case_:
-            error_msg = "❌ Нет корпуса."
-        else:
-            pc["case"] = case_
-            remaining -= get_price(case_)
+        if not case_: error_msg = "❌ Нет корпуса."
+        else: pc["case"] = case_; remaining -= get_price(case_)
 
     if error_msg:
         st.error(error_msg)
@@ -464,7 +172,14 @@ if st.button("🔍 Подобрать сборку", type="primary"):
 # ---------- Шаг 2: Просмотр и замена ----------
 if st.session_state.step == "review" and st.session_state.pc is not None:
     pc = st.session_state.pc
-    st.header("Шаг 2. Сборка (можно заменить любую позицию)")
+    st.header("Шаг 2. Сборка — проверьте и при необходимости замените компоненты")
+
+    # Показываем проблемы совместимости вверху
+    compat_issues = check_compatibility(pc["cpu"], pc["motherboard"], pc["ram"], pc["gpu"], pc["psu"], pc["case"])
+    if compat_issues:
+        st.error("⚠️ Обнаружены проблемы совместимости:")
+        for msg in compat_issues:
+            st.write(f"- {msg}")
 
     labels = [
         ("🧠 Процессор", "cpu"),
@@ -478,61 +193,68 @@ if st.session_state.step == "review" and st.session_state.pc is not None:
     for label, key in labels:
         current = pc[key]
         current_price = get_price(current)
-        best_shop = get_best_shop(current)
+
         st.subheader(label)
         stock_icon = "✅" if current.get("in_stock", True) else "❌ Нет в наличии"
         st.write(f"**{current['model']}** — {current_price} руб. | {stock_icon}")
-        if best_shop:
-            st.markdown(f"🔗 [Купить на {best_shop['source']}]({best_shop['url']}) — {best_shop['price']} руб.")
 
-        # Характеристики компонента
+        # Подробные характеристики
         if key == "cpu":
-            st.write(f"Сокет: {current['socket']} | Ядер: {current.get('cores', '—')} | Потоков: {current.get('threads', '—')} | TDP: {current['tdp']} Вт")
+            st.write(f"🔹 Сокет: **{current['socket']}** | Ядер: {current.get('cores', '—')} | Потоков: {current.get('threads', '—')} | Базовая частота: {current.get('base_clock', '—')} | Турбо: {current.get('turbo_clock', '—')} | TDP: {current['tdp']} Вт")
         elif key == "motherboard":
-            st.write(f"Сокет: {current['socket']} | RAM: {current['ram_type']} | Слотов RAM: {current.get('ram_slots', '—')} | Форм-фактор: {current['form_factor']}")
+            st.write(f"🔹 Сокет: **{current['socket']}** | Чипсет: {current.get('chipset', '—')} | RAM: {current['ram_type']} | Слотов RAM: {current.get('ram_slots', '—')} | Макс RAM: {current.get('max_ram', '—')} ГБ | Форм-фактор: **{current['form_factor']}**")
         elif key == "ram":
-            st.write(f"Тип: {current['type']} | Объём: {current['size']} ГБ | Частота: {current.get('freq', '—')} МГц")
+            st.write(f"🔹 Тип: **{current['type']}** | Объём: {current['size']} ГБ | Частота: {current.get('freq', '—')} МГц | Планок: {current.get('sticks', '—')}")
         elif key == "gpu":
-            st.write(f"Видеопамять: {current.get('vram', '—')} ГБ | TDP: {current['tdp']} Вт")
+            st.write(f"🔹 Видеопамять: {current.get('vram', '—')} ГБ | TDP: {current['tdp']} Вт")
         elif key == "psu":
-            st.write(f"Мощность: {current['power']} Вт | Сертификат: {current.get('cert', '—')}")
+            st.write(f"🔹 Мощность: {current['power']} Вт | Сертификат: {current.get('cert', '—')}")
         elif key == "case":
-            st.write(f"Форм-фактор: {current['form_factor']} | Вентиляторов: {current.get('fans', '—')}")
+            st.write(f"🔹 Форм-фактор: **{current['form_factor']}** | Вентиляторов в комплекте: {current.get('fans', '—')}")
 
-        # Выпадающий список с учётом совместимости
+        # Выпадающий список замены
         all_options = DATABASE[key]
-        options_with_compat = []
+        current_str = f"{current['model']} — {current_price} руб."
+
+        # Формируем список опций с информацией о совместимости и рекомендациях
+        options_display = []
+        compatible_options = []
         for o in all_options:
             o_price = get_price(o)
-            o_shop = get_best_shop(o) or {"source": "—"}
             stock = "✅" if o.get("in_stock", True) else "❌"
-            compat_msgs = get_compatibility_with_current(key, o, pc)
-            is_compat = all("✅" in m for m in compat_msgs)
-            if is_compat:
-                options_with_compat.append(f"{stock} {o['model']} — {o_price} руб. ({o_shop['source']}) ✅ Совместим")
+            ok, reasons = get_compatibility_status(key, o, pc)
+            if ok:
+                options_display.append(f"{stock} {o['model']} — {o_price} руб.")
+                compatible_options.append(o)
             else:
-                issues = [m.split("❌ ")[1] for m in compat_msgs if "❌" in m]
-                options_with_compat.append(f"{stock} {o['model']} — {o_price} руб. ({o_shop['source']}) ❌ {'; '.join(issues)}")
+                reason_text = "; ".join(reasons)
+                options_display.append(f"{stock} {o['model']} — {o_price} руб. ⚠️ {reason_text}")
 
-        current_str = f"{'✅' if current.get('in_stock', True) else '❌'} {current['model']} — {current_price} руб. ({best_shop['source'] if best_shop else '—'})"
-        # Ищем текущий в списке (частичное совпадение)
+        # Находим индекс текущего элемента
         idx = 0
-        for i, opt in enumerate(options_with_compat):
-            if current['model'] in opt:
+        for i, disp in enumerate(options_display):
+            if current['model'] in disp:
                 idx = i
                 break
 
-        selected_str = st.selectbox("🔄 Заменить:", options_with_compat, index=idx, key=f"select_{key}")
+        # Выбор с рекомендацией
+        st.caption("💡 *Рекомендация: выбирайте товары без предупреждений — они гарантированно совместимы*")
 
-        # Извлекаем модель из выбранной строки
-        # Формат: "✅/❌ Модель — цена руб. (магазин) метка"
-        parts = selected_str.split(" — ")
-        model_part = parts[0].split(" ", 1)[1] if len(parts[0].split(" ", 1)) > 1 else parts[0]
-        selected_model = model_part.strip()
+        selected_display = st.selectbox(
+            "🔄 Заменить:",
+            options_display,
+            index=idx,
+            key=f"select_{key}",
+            label_visibility="collapsed"
+        )
+
+        # Обработка выбора
+        selected_model = selected_display.split(" — ")[0].split(" ", 1)[1] if " " in selected_display.split(" — ")[0] else selected_display.split(" — ")[0]
         for opt in all_options:
             if opt["model"] == selected_model and opt["model"] != current["model"]:
                 pc[key] = opt
                 break
+
         st.markdown("---")
 
     # Пересчёт итогов
@@ -544,25 +266,19 @@ if st.session_state.step == "review" and st.session_state.pc is not None:
 
     col_a, col_b, col_c = st.columns(3)
     col_a.metric("💰 Итого", f"{pc['total']} руб.")
-    col_b.metric("💵 Остаток", f"{pc['remaining']} руб.")
-    col_c.metric("⚡ Треб. БП", f"{math.ceil((pc['cpu']['tdp'] + pc['gpu']['tdp'] + 50) * 1.3)} Вт")
+    col_b.metric("💵 Остаток бюджета", f"{pc['remaining']} руб.")
+    col_c.metric("⚡ Требуемая мощность БП",
+                 f"{math.ceil((pc['cpu']['tdp'] + pc['gpu']['tdp'] + 50) * 1.3)} Вт")
 
-    st.subheader("🔍 Совместимость")
-    for msg in pc["compatibility"]:
-        if "❌" in msg:
-            st.error(msg)
-        else:
-            st.success(msg)
-
-    if st.button("✅ Подтвердить сборку"):
+    if st.button("✅ Подтвердить сборку", type="primary"):
         st.session_state.step = "final"
         st.rerun()
 
-# ---------- Шаг 3: Финал со ссылками ----------
+# ---------- Шаг 3: Финал ----------
 if st.session_state.step == "final" and st.session_state.pc is not None:
     pc = st.session_state.pc
     st.header("🏁 Итоговая сборка — ссылки на покупку")
-    st.info("Для каждого компонента указана лучшая цена среди магазинов.")
+    st.info("Ниже — полный список компонентов с лучшими ценами и прямыми ссылками.")
 
     items = [
         ("🧠 Процессор", "cpu"),
@@ -589,11 +305,11 @@ if st.session_state.step == "final" and st.session_state.pc is not None:
 
         # Характеристики
         if key == "cpu":
-            st.write(f"🔹 Сокет: {comp['socket']} | Ядер: {comp.get('cores', '—')} | Потоков: {comp.get('threads', '—')} | TDP: {comp['tdp']} Вт")
+            st.write(f"🔹 Сокет: {comp['socket']} | Ядер: {comp.get('cores', '—')} | Потоков: {comp.get('threads', '—')} | Базовая частота: {comp.get('base_clock', '—')} | Турбо: {comp.get('turbo_clock', '—')} | TDP: {comp['tdp']} Вт")
         elif key == "motherboard":
-            st.write(f"🔹 Сокет: {comp['socket']} | RAM: {comp['ram_type']} | Слотов: {comp.get('ram_slots', '—')} | Форм-фактор: {comp['form_factor']}")
+            st.write(f"🔹 Сокет: {comp['socket']} | Чипсет: {comp.get('chipset', '—')} | RAM: {comp['ram_type']} | Слотов RAM: {comp.get('ram_slots', '—')} | Макс RAM: {comp.get('max_ram', '—')} ГБ | Форм-фактор: {comp['form_factor']}")
         elif key == "ram":
-            st.write(f"🔹 Тип: {comp['type']} | Объём: {comp['size']} ГБ | Частота: {comp.get('freq', '—')} МГц")
+            st.write(f"🔹 Тип: {comp['type']} | Объём: {comp['size']} ГБ | Частота: {comp.get('freq', '—')} МГц | Планок: {comp.get('sticks', '—')}")
         elif key == "gpu":
             st.write(f"🔹 Видеопамять: {comp.get('vram', '—')} ГБ | TDP: {comp['tdp']} Вт")
         elif key == "psu":
@@ -601,11 +317,14 @@ if st.session_state.step == "final" and st.session_state.pc is not None:
         elif key == "case":
             st.write(f"🔹 Форм-фактор: {comp['form_factor']} | Вентиляторов: {comp.get('fans', '—')}")
 
-        # Ссылки на магазины
+        # Ссылки на магазины (только на финальном шаге)
         if comp.get("shops"):
             st.write("**🛒 Где купить:**")
             for shop in comp["shops"]:
-                st.markdown(f"- [{shop['source']} — {shop['price']} руб.]({shop['url']})")
+                if shop == best_shop:
+                    st.markdown(f"- 🏆 **{shop['source']} — {shop['price']} руб. (лучшая цена!)** [Открыть]({shop['url']})")
+                else:
+                    st.markdown(f"- {shop['source']} — {shop['price']} руб. [Открыть]({shop['url']})")
 
         # Замена отсутствующего
         if not in_stock:
@@ -632,15 +351,16 @@ if st.session_state.step == "final" and st.session_state.pc is not None:
     col1, col2, col3 = st.columns(3)
     with col1:
         st.metric("💰 Итого", f"{total_price} руб.")
-        st.write(f"Процессор: {pc['cpu']['model']}")
-        st.write(f"Видеокарта: {pc['gpu']['model']}")
+        st.write(f"**Процессор:** {pc['cpu']['model']}")
+        st.write(f"**Видеокарта:** {pc['gpu']['model']}")
     with col2:
         total_tdp = pc['cpu']['tdp'] + pc['gpu']['tdp'] + 50
         st.metric("⚡ Энергопотребление", f"{total_tdp} Вт")
-        st.write(f"ОЗУ: {pc['ram']['size']} ГБ {pc['ram']['type']}")
+        st.write(f"**ОЗУ:** {pc['ram']['size']} ГБ {pc['ram']['type']}")
+        st.write(f"**БП:** {pc['psu']['power']} Вт ({pc['psu'].get('cert', '—')})")
     with col3:
         st.metric("📅 Дата подбора", datetime.now().strftime("%d.%m.%Y"))
-        st.write(f"Платформа: {pc['cpu']['socket']}")
-        st.write(f"Корпус: {pc['case']['form_factor']}")
+        st.write(f"**Платформа:** {pc['cpu']['socket']} + {pc['motherboard'].get('chipset', '—')}")
+        st.write(f"**Корпус:** {pc['case']['form_factor']}")
 
     st.info("Спасибо за использование программы! Для нового подбора обновите страницу (F5).")
