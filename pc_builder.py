@@ -22,7 +22,9 @@ if 'step' not in st.session_state: st.session_state.step = 'input'
 if 'budget' not in st.session_state: st.session_state.budget = 0
 if 'purpose' not in st.session_state: st.session_state.purpose = 'gaming'
 if 'existing' not in st.session_state: st.session_state.existing = {}
+if 'custom_existing' not in st.session_state: st.session_state.custom_existing = {}
 if 'sort_order' not in st.session_state: st.session_state.sort_order = "Без сортировки"
+if 'show_replace' not in st.session_state: st.session_state.show_replace = {}
 
 def get_price(item):
     if not item.get("shops"): return item.get("price", 0)
@@ -53,6 +55,21 @@ def sort_options(options, sort_key):
         return sorted(options, key=lambda x: x["model"])
     return options
 
+def display_characteristics(comp, key):
+    """Показывает характеристики компонента."""
+    if key == "cpu":
+        st.write(f"🔹 Сокет: **{comp.get('socket','—')}** | Ядер: {comp.get('cores','—')} | Потоков: {comp.get('threads','—')} | Базовая частота: {comp.get('base_clock','—')} | Турбо: {comp.get('turbo_clock','—')} | TDP: {comp.get('tdp','—')} Вт")
+    elif key == "motherboard":
+        st.write(f"🔹 Сокет: **{comp.get('socket','—')}** | Чипсет: {comp.get('chipset','—')} | RAM: {comp.get('ram_type','—')} | Слотов RAM: {comp.get('ram_slots','—')} | Макс RAM: {comp.get('max_ram','—')} ГБ | Форм-фактор: **{comp.get('form_factor','—')}**")
+    elif key == "ram":
+        st.write(f"🔹 Тип: **{comp.get('type','—')}** | Объём: {comp.get('size','—')} ГБ | Частота: {comp.get('freq','—')} МГц | Планок: {comp.get('sticks','—')}")
+    elif key == "gpu":
+        st.write(f"🔹 Видеопамять: {comp.get('vram','—')} ГБ | TDP: {comp.get('tdp','—')} Вт")
+    elif key == "psu":
+        st.write(f"🔹 Мощность: **{comp.get('power','—')} Вт** | Сертификат: {comp.get('cert','—')}")
+    elif key == "case":
+        st.write(f"🔹 Форм-фактор: **{comp.get('form_factor','—')}** | Вентиляторов: {comp.get('fans','—')}")
+
 # ====================== ИНТЕРФЕЙС ======================
 st.set_page_config(page_title="Подбор ПК", layout="wide")
 st.title("🖥️ Подбор комплектующих ПК")
@@ -65,6 +82,7 @@ with col2:
     purpose = st.selectbox("🎯 Назначение", ["Офисные задачи", "Игры и графика"])
 
 with st.expander("🔧 У меня уже есть комплектующие", expanded=False):
+    st.write("**Способ 1:** Выберите из списка")
     existing = {}
     for key in ["cpu", "motherboard", "ram", "gpu", "psu", "case"]:
         items = DATABASE[key]
@@ -77,8 +95,28 @@ with st.expander("🔧 У меня уже есть комплектующие", 
                     existing[key] = it
                     break
     st.session_state.existing = existing
-    if existing:
-        st.success(f"Учтено: {len(existing)} шт.")
+    
+    st.markdown("---")
+    st.write("**Способ 2:** Или укажите характеристики вручную (если вашего компонента нет в списке)")
+    custom_existing = st.session_state.custom_existing
+    
+    cc1, cc2, cc3 = st.columns(3)
+    with cc1:
+        custom_cpu_socket = st.selectbox("Сокет процессора", ["Не знаю", "LGA1700", "AM4", "AM5"], key="cust_cpu_sock")
+        if custom_cpu_socket != "Не знаю":
+            custom_existing["cpu_socket"] = custom_cpu_socket
+    with cc2:
+        custom_ram_type = st.selectbox("Тип памяти", ["Не знаю", "DDR4", "DDR5"], key="cust_ram_type")
+        if custom_ram_type != "Не знаю":
+            custom_existing["ram_type"] = custom_ram_type
+    with cc3:
+        custom_gpu_tdp = st.number_input("TDP видеокарты (Вт, примерно)", min_value=0, max_value=500, value=0, key="cust_gpu_tdp")
+        if custom_gpu_tdp > 0:
+            custom_existing["gpu_tdp"] = custom_gpu_tdp
+    
+    st.session_state.custom_existing = custom_existing
+    if existing or custom_existing:
+        st.success(f"Учтено: {len(existing)} из списка + {len(custom_existing)} характеристики вручную")
 
 if st.button("🔍 Подобрать сборку", type="primary"):
     st.session_state.step = "review"
@@ -86,19 +124,26 @@ if st.button("🔍 Подобрать сборку", type="primary"):
     purpose_key = "office" if purpose == "Офисные задачи" else "gaming"
     st.session_state.purpose = purpose_key
     existing = st.session_state.existing
+    custom = st.session_state.custom_existing
     remaining = budget
     pc = {}
     err = None
 
+    # CPU
     if "cpu" in existing:
         pc["cpu"] = existing["cpu"]
     else:
-        candidates = sorted([c for c in DATABASE["cpu"] if c.get("purpose") == purpose_key], key=get_price)
+        socket_filter = custom.get("cpu_socket")
+        candidates = [c for c in DATABASE["cpu"] if c.get("purpose") == purpose_key]
+        if socket_filter:
+            candidates = [c for c in candidates if c["socket"] == socket_filter]
+        candidates = sorted(candidates, key=get_price)
         for c in candidates:
             if get_price(c) <= remaining:
                 pc["cpu"] = c; remaining -= get_price(c); break
-        if "cpu" not in pc: err = "Нет процессора в бюджете"
+        if "cpu" not in pc: err = "Нет процессора"
 
+    # MB
     if not err:
         if "motherboard" in existing:
             pc["motherboard"] = existing["motherboard"]
@@ -109,16 +154,20 @@ if st.button("🔍 Подобрать сборку", type="primary"):
                     pc["motherboard"] = m; remaining -= get_price(m); break
             if "motherboard" not in pc: err = "Нет материнской платы"
 
+    # RAM
     if not err:
         if "ram" in existing:
             pc["ram"] = existing["ram"]
         else:
-            candidates = sorted([r for r in DATABASE["ram"] if r["type"] == pc["motherboard"]["ram_type"]], key=get_price)
+            ram_type = custom.get("ram_type", pc["motherboard"]["ram_type"])
+            candidates = [r for r in DATABASE["ram"] if r["type"] == pc["motherboard"]["ram_type"]]
+            candidates = sorted(candidates, key=get_price)
             for r in candidates:
                 if get_price(r) <= remaining:
                     pc["ram"] = r; remaining -= get_price(r); break
             if "ram" not in pc: err = "Нет ОЗУ"
 
+    # GPU
     if not err:
         if "gpu" in existing:
             pc["gpu"] = existing["gpu"]
@@ -129,12 +178,13 @@ if st.button("🔍 Подобрать сборку", type="primary"):
                     pc["gpu"] = g; remaining -= get_price(g); break
             if "gpu" not in pc: err = "Нет видеокарты"
 
+    # PSU
     if not err:
         required = math.ceil((pc["cpu"]["tdp"] + pc["gpu"]["tdp"] + 50) * 1.3)
         if "psu" in existing:
             pc["psu"] = existing["psu"]
             if existing["psu"]["power"] < required:
-                err = f"Ваш БП ({existing['psu']['power']}Вт) слаб для этой сборки, нужно {required}Вт"
+                err = f"Ваш БП ({existing['psu']['power']}Вт) слаб, нужно {required}Вт"
         else:
             candidates = sorted([p for p in DATABASE["psu"] if p["power"] >= required], key=get_price)
             for p in candidates:
@@ -142,6 +192,7 @@ if st.button("🔍 Подобрать сборку", type="primary"):
                     pc["psu"] = p; remaining -= get_price(p); break
             if "psu" not in pc: err = f"Нет БП на {required}Вт"
 
+    # Case
     if not err:
         if "case" in existing:
             pc["case"] = existing["case"]
@@ -168,7 +219,7 @@ if st.session_state.step == "review" and st.session_state.pc is not None:
 
     with st.container(border=True):
         c1, c2 = st.columns(2)
-        c1.info("💡 Выбирайте в списках замены товары без «⚠️» — они совместимы")
+        c1.info("💡 В списках замены выбирайте товары без «⚠️» — они совместимы")
         c2.warning("💰 Цены ориентировочные")
 
     if pc["compatibility"]:
@@ -189,21 +240,16 @@ if st.session_state.step == "review" and st.session_state.pc is not None:
         cur = pc[key]
         owned = key in existing and existing[key]["model"] == cur["model"]
         
-        # Компактная строка с информацией и кнопкой замены
-        col_info, col_btn = st.columns([3, 1])
-        with col_info:
-            icon = "🔒" if owned else ("✅" if cur.get("in_stock", True) else "❌")
-            st.write(f"{icon} **{cur['model']}** — {get_price(cur)} руб. {'(ваш)' if owned else ''}")
-        with col_btn:
-            if not owned:
-                replace_clicked = st.button("🔄 Заменить", key=f"btn_{key}")
-            else:
-                replace_clicked = False
+        st.subheader(f"{'🔒' if owned else ''} {label}")
+        icon = "✅" if cur.get("in_stock", True) else "❌"
+        st.write(f"{icon} **{cur['model']}** — {get_price(cur)} руб. {'(ваш)' if owned else ''}")
+        display_characteristics(cur, key)
         
-        # Если нажали "Заменить" — показываем popover со списком
-        if replace_clicked:
-            with st.container():
-                st.markdown("---")
+        if not owned:
+            if st.button("🔄 Заменить", key=f"btn_{key}"):
+                st.session_state.show_replace[key] = True
+            
+            if st.session_state.show_replace.get(key):
                 st.write(f"**Замена для «{cur['model']}»:**")
                 opts = DATABASE[key]
                 opts = sort_options(opts, sort_order)
@@ -218,13 +264,16 @@ if st.session_state.step == "review" and st.session_state.pc is not None:
                     else:
                         disp.append(f"{stock} {o['model']} — {get_price(o)} руб. ⚠️ {'; '.join(issues)}")
                 idx = next((i for i, d in enumerate(disp) if cur['model'] in d), 0)
-                sel = st.selectbox("Выберите:", disp, index=idx, key=f"sel_{key}")
+                sel = st.selectbox("Выберите замену:", disp, index=idx, key=f"sel_{key}")
                 sel_model = sel.split(" — ")[0].split(" ", 1)[1] if " " in sel.split(" — ")[0] else sel.split(" — ")[0]
                 for o in opts:
                     if o["model"] == sel_model and o["model"] != cur["model"]:
                         pc[key] = o
+                        st.session_state.show_replace[key] = False
                         st.rerun()
-                st.markdown("---")
+                if st.button("Отмена", key=f"cancel_{key}"):
+                    st.session_state.show_replace[key] = False
+                    st.rerun()
         
         st.markdown("---")
 
@@ -245,18 +294,53 @@ if st.session_state.step == "review" and st.session_state.pc is not None:
 if st.session_state.step == "final" and st.session_state.pc is not None:
     pc = st.session_state.pc; existing = st.session_state.existing
     st.header("🏁 Итоговая сборка")
-    st.warning("💰 Цены ориентировочные")
+    st.warning("💰 Цены ориентировочные — реальные цены могут отличаться")
     total = 0
-    for label, key in [("Процессор","cpu"),("Мат. плата","motherboard"),("ОЗУ","ram"),
-                       ("Видеокарта","gpu"),("БП","psu"),("Корпус","case")]:
+    labels = [("🧠 Процессор","cpu"),("🖥️ Мат. плата","motherboard"),("🧮 ОЗУ","ram"),
+              ("🎮 Видеокарта","gpu"),("⚡ Блок питания","psu"),("🏠 Корпус","case")]
+    for label, key in labels:
         comp = pc[key]; price = get_price(comp); owned = key in existing and existing[key]["model"] == comp["model"]
         if not owned: total += price
         st.markdown(f"### {label}")
-        st.write(f"{'🔒' if owned else '✅'} **{comp['model']}** — {price} руб. {'(ваш)' if owned else ''}")
+        icon = "🔒" if owned else ("✅" if comp.get("in_stock", True) else "❌")
+        st.write(f"{icon} **{comp['model']}** — {price} руб. {'(ваш)' if owned else ''}")
+        display_characteristics(comp, key)
         if not owned and comp.get("shops"):
             best = get_best_shop(comp)
+            st.write("**🛒 Где купить:**")
             for s in comp["shops"]:
                 st.markdown(f"- {'🏆 ' if s==best else ''}{s['source']} — {s['price']} руб. [Ссылка]({s['url']})")
+        if not owned and not comp.get("in_stock", True):
+            st.write("🔽 Замена:")
+            alternatives = [o for o in DATABASE[key] if o.get("in_stock", True)]
+            if alternatives:
+                alt_str = [f"{o['model']} — {get_price(o)} руб." for o in alternatives]
+                chosen = st.selectbox(f"Замена для {label}", alt_str, key=f"replace_{key}")
+                chosen_model = chosen.split(" — ")[0]
+                for o in alternatives:
+                    if o["model"] == chosen_model:
+                        pc[key] = o
+                        break
+                new_shop = get_best_shop(pc[key])
+                if new_shop:
+                    st.markdown(f"🛒 [Купить замену на {new_shop['source']}]({new_shop['url']}) — {new_shop['price']} руб.")
         st.write("")
-    st.metric("💰 К покупке", f"{total} руб.")
+    
+    st.markdown("---")
+    st.subheader("📊 Характеристики сборки")
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.metric("💰 К покупке", f"{total} руб.")
+        st.write(f"**CPU:** {pc['cpu']['model']}")
+        st.write(f"**GPU:** {pc['gpu']['model']}")
+    with col2:
+        tdp = pc['cpu']['tdp'] + pc['gpu']['tdp'] + 50
+        st.metric("⚡ Энергопотребление", f"{tdp} Вт")
+        st.write(f"**RAM:** {pc['ram']['size']} ГБ {pc['ram']['type']}")
+        st.write(f"**БП:** {pc['psu']['power']} Вт ({pc['psu'].get('cert','—')})")
+    with col3:
+        st.metric("📅 Дата подбора", datetime.now().strftime("%d.%m.%Y"))
+        st.write(f"**Платформа:** {pc['cpu']['socket']} + {pc['motherboard'].get('chipset','—')}")
+        st.write(f"**Корпус:** {pc['case']['form_factor']}")
+    
     st.info("Спасибо! F5 — новый подбор.")
