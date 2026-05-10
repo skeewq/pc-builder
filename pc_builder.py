@@ -128,6 +128,7 @@ if st.button("🔍 Подобрать сборку", type="primary"):
     pc = {}
     err = None
 
+    # ---------- БАЗОВЫЙ ПОДБОР (самые дешёвые совместимые) ----------
     # CPU
     if "cpu" in existing:
         pc["cpu"] = existing["cpu"]
@@ -203,6 +204,58 @@ if st.button("🔍 Подобрать сборку", type="primary"):
     if err:
         st.error(f"❌ {err}")
     else:
+        # ---------- ФАЗА УЛУЧШЕНИЯ: тратим оставшийся бюджет ----------
+        # Порядок апгрейда: CPU → GPU → RAM → MB → PSU → Case
+        upgrade_order = ["cpu", "gpu", "ram", "motherboard", "psu", "case"]
+        upgraded = True
+        while upgraded and remaining > 0:
+            upgraded = False
+            for key in upgrade_order:
+                if key in existing:  # не меняем то, что уже есть у пользователя
+                    continue
+                current = pc[key]
+                current_price = get_price(current)
+                max_budget = current_price + remaining  # сколько можем потратить на этот компонент
+
+                # Кандидаты: совместимые, дороже текущего, влезают в max_budget
+                if key == "cpu":
+                    candidates = [c for c in DATABASE["cpu"] if c.get("purpose") == purpose_key]
+                    if socket_filter_cpu := custom.get("cpu_socket"):
+                        candidates = [c for c in candidates if c["socket"] == socket_filter_cpu]
+                elif key == "motherboard":
+                    candidates = [m for m in DATABASE["motherboard"] if m["socket"] == pc["cpu"]["socket"]]
+                elif key == "ram":
+                    candidates = [r for r in DATABASE["ram"] if r["type"] == pc["motherboard"]["ram_type"]]
+                elif key == "gpu":
+                    candidates = [g for g in DATABASE["gpu"] if g.get("purpose") == purpose_key]
+                elif key == "psu":
+                    required_watt = math.ceil((pc["cpu"]["tdp"] + pc["gpu"]["tdp"] + 50) * 1.3)
+                    candidates = [p for p in DATABASE["psu"] if p["power"] >= required_watt]
+                elif key == "case":
+                    candidates = [c for c in DATABASE["case"] if c["form_factor"] == pc["motherboard"]["form_factor"]]
+
+                # Сортируем по убыванию цены, выбираем самый дорогой, который влезает
+                candidates = sorted(candidates, key=lambda x: get_price(x), reverse=True)
+                for candidate in candidates:
+                    candidate_price = get_price(candidate)
+                    if candidate_price > current_price and candidate_price <= max_budget:
+                        # Проверяем совместимость с остальными компонентами
+                        test_pc = pc.copy()
+                        test_pc[key] = candidate
+                        issues = check_compatibility(
+                            test_pc["cpu"], test_pc["motherboard"], test_pc["ram"],
+                            test_pc["gpu"], test_pc["psu"], test_pc["case"]
+                        )
+                        if len(issues) == 0:
+                            # Улучшаем
+                            remaining -= (candidate_price - current_price)
+                            pc[key] = candidate
+                            upgraded = True
+                            break  # переходим к следующему компоненту
+                if upgraded:
+                    break  # начинаем цикл while заново, чтобы пересмотреть все компоненты с новым остатком
+            # конец for, если не было улучшений, цикл while завершится
+
         pc["total"] = budget - remaining
         pc["remaining"] = remaining
         pc["compatibility"] = check_compatibility(pc["cpu"], pc["motherboard"], pc["ram"], pc["gpu"], pc["psu"], pc["case"])
@@ -210,7 +263,6 @@ if st.button("🔍 Подобрать сборку", type="primary"):
 
 # ---------- Шаг 2 ----------
 if st.session_state.step == "review" and st.session_state.pc is not None:
-    # ВСЕГДА берём pc из сессии, а не из локальной переменной
     pc = st.session_state.pc
     existing = st.session_state.existing
     st.header("Шаг 2. Сборка")
@@ -220,9 +272,8 @@ if st.session_state.step == "review" and st.session_state.pc is not None:
         c1.info("💡 В списках замены выбирайте товары без «⚠️» — они совместимы")
         c2.warning("💰 Цены ориентировочные")
 
-    # Пересчитываем совместимость при каждом показе
     pc["compatibility"] = check_compatibility(pc["cpu"], pc["motherboard"], pc["ram"], pc["gpu"], pc["psu"], pc["case"])
-    st.session_state.pc = pc  # синхронизируем обратно
+    st.session_state.pc = pc
 
     if pc["compatibility"]:
         st.error("⚠️ Проблемы совместимости:")
@@ -258,7 +309,6 @@ if st.session_state.step == "review" and st.session_state.pc is not None:
                 opts = sort_options(opts, sort_order)
                 disp = []
                 for o in opts:
-                    # СОЗДАЁМ ВРЕМЕННУЮ СБОРКУ НА ОСНОВЕ ТЕКУЩЕГО pc ИЗ СЕССИИ
                     compat_pc = {
                         "cpu": pc["cpu"].copy(),
                         "motherboard": pc["motherboard"].copy(),
@@ -281,8 +331,8 @@ if st.session_state.step == "review" and st.session_state.pc is not None:
                 sel_model = sel.split(" — ")[0].split(" ", 1)[1] if " " in sel.split(" — ")[0] else sel.split(" — ")[0]
                 for o in opts:
                     if o["model"] == sel_model and o["model"] != cur["model"]:
-                        pc[key] = o  # обновляем локально
-                        st.session_state.pc[key] = o  # синхронизируем с сессией
+                        pc[key] = o
+                        st.session_state.pc[key] = o
                         st.session_state.show_replace[key] = False
                         st.rerun()
                 if st.button("Отмена", key=f"cancel_{key}"):
@@ -291,12 +341,11 @@ if st.session_state.step == "review" and st.session_state.pc is not None:
         
         st.markdown("---")
 
-    # Пересчёт итогов ПОСЛЕ всех замен
     new_total = sum(get_price(pc[k]) for k in ["cpu","motherboard","ram","gpu","psu","case"] if k not in existing or existing[k]["model"] != pc[k]["model"])
     pc["total"] = new_total
     pc["remaining"] = st.session_state.budget - new_total
     pc["compatibility"] = check_compatibility(pc["cpu"], pc["motherboard"], pc["ram"], pc["gpu"], pc["psu"], pc["case"])
-    st.session_state.pc = pc  # финальная синхронизация
+    st.session_state.pc = pc
 
     ca, cb, cc = st.columns(3)
     ca.metric("💰 К покупке", f"{pc['total']} руб.")
